@@ -1,0 +1,528 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 63;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A8A2545224D8BBFB34D8A31 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6FBC6473076A6D1B53E5B5B5 /* LaunchScreen.storyboard */; };
+		3F0F88D56DFA4D10AFA08534 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */; };
+		7C2AA5EEAFAF468E61AAA498 /* FitbitHealthSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F575DAAB42B9B2DDFD37750 /* FitbitHealthSyncTests.swift */; };
+		82F04D3BF01AB6051F5456EF /* AppStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1772298E303F8E5B9C8F451F /* AppStores.swift */; };
+		85F8628C5B1EEC74AFD0EACA /* BackgroundSyncScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCA799895DE819A21AD85090 /* BackgroundSyncScheduler.swift */; };
+		A05A547F2424888AB7D2D2C8 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F218DA3CB7849461F17BF16 /* RootView.swift */; };
+		A26B97AB6240088AA0D1B917 /* FitbitAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71F30EF932CA3DCFE1EBA75B /* FitbitAPIClient.swift */; };
+		A34594FEC1992E9151583C5B /* FitbitAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A2764D88A2E2FF84A8BE10 /* FitbitAuthManager.swift */; };
+		AEC1819B578538C3E6EC3EB2 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2BC3D21ED5D71517BF907A /* Models.swift */; };
+		C92A230439101E72D96DFE76 /* FitbitHealthSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DFA2FEDE0E73EC811E64C8 /* FitbitHealthSyncApp.swift */; };
+		D6988F5CA18B884623F73C30 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F719B92B58E2AEEA3FF197 /* HealthKitManager.swift */; };
+		D8B30A00B882ACFF295EFDB6 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7BB8AB38EC936C1A3F63ED /* SyncEngine.swift */; };
+		E37F7141820B6E6593F33494 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCC16E02AF57D1EFCCECBEB /* AppModel.swift */; };
+		F6C63100DD2D114AD3A4471F /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F256019AC40AD834959E41 /* KeychainStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2F0449A6CF50C74C7650E769 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E46C6891717F2D0E1DCF7FE5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 945DAF418B974FAD232306AE;
+			remoteInfo = FitbitHealthSync;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0C2BC3D21ED5D71517BF907A /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		1772298E303F8E5B9C8F451F /* AppStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStores.swift; sourceTree = "<group>"; };
+		18F719B92B58E2AEEA3FF197 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
+		1B870FA98776C73DF1D2E55C /* FitbitHealthSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitbitHealthSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D7BB8AB38EC936C1A3F63ED /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
+		1DCC16E02AF57D1EFCCECBEB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		20A2764D88A2E2FF84A8BE10 /* FitbitAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitAuthManager.swift; sourceTree = "<group>"; };
+		24DFA2FEDE0E73EC811E64C8 /* FitbitHealthSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitHealthSyncApp.swift; sourceTree = "<group>"; };
+		2F218DA3CB7849461F17BF16 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		3C4FF67E4B983CBAF9179177 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4F575DAAB42B9B2DDFD37750 /* FitbitHealthSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitHealthSyncTests.swift; sourceTree = "<group>"; };
+		68F256019AC40AD834959E41 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		6FBC6473076A6D1B53E5B5B5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		71F30EF932CA3DCFE1EBA75B /* FitbitAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitAPIClient.swift; sourceTree = "<group>"; };
+		D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AD6F7CBCD1BC4091E0D1754B /* FitbitHealthSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitbitHealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BCA799895DE819A21AD85090 /* BackgroundSyncScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncScheduler.swift; sourceTree = "<group>"; };
+		F32691BD01E237C3399C185D /* FitbitHealthSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitbitHealthSync.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1D7D5F368BEC6126BD113A9F = {
+			isa = PBXGroup;
+			children = (
+				511620A3F8DAFED5A3F52E3C /* FitbitHealthSync */,
+				F399348C5E91846CEC20D692 /* FitbitHealthSyncTests */,
+				F4DBE9B4B4169D32E5EBC2A5 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		359E2C522147AC3A3F2BBE99 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F32691BD01E237C3399C185D /* FitbitHealthSync.entitlements */,
+				6FBC6473076A6D1B53E5B5B5 /* LaunchScreen.storyboard */,
+				3C4FF67E4B983CBAF9179177 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		49A2ED5A38BFACBDAB64D37A /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0C2BC3D21ED5D71517BF907A /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		50C2D86ADAACA8744D56FC15 /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				BCA799895DE819A21AD85090 /* BackgroundSyncScheduler.swift */,
+				1D7BB8AB38EC936C1A3F63ED /* SyncEngine.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		511620A3F8DAFED5A3F52E3C /* FitbitHealthSync */ = {
+			isa = PBXGroup;
+			children = (
+				9DA91158C1C26C8079E8A8F2 /* App */,
+				D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */,
+				49A2ED5A38BFACBDAB64D37A /* Models */,
+				B60995867A823D543D2059AB /* Persistence */,
+				359E2C522147AC3A3F2BBE99 /* Resources */,
+				EE794C8D27E24E67F18A2B73 /* Services */,
+				50C2D86ADAACA8744D56FC15 /* Sync */,
+			);
+			path = FitbitHealthSync;
+			sourceTree = "<group>";
+		};
+		69B1317AA46D614B3EB2C3E5 /* Fitbit */ = {
+			isa = PBXGroup;
+			children = (
+				71F30EF932CA3DCFE1EBA75B /* FitbitAPIClient.swift */,
+				20A2764D88A2E2FF84A8BE10 /* FitbitAuthManager.swift */,
+			);
+			path = Fitbit;
+			sourceTree = "<group>";
+		};
+		9DA91158C1C26C8079E8A8F2 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				1DCC16E02AF57D1EFCCECBEB /* AppModel.swift */,
+				24DFA2FEDE0E73EC811E64C8 /* FitbitHealthSyncApp.swift */,
+				2F218DA3CB7849461F17BF16 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		B60995867A823D543D2059AB /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				1772298E303F8E5B9C8F451F /* AppStores.swift */,
+				68F256019AC40AD834959E41 /* KeychainStore.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		CD5FB927F84F380BC6396046 /* HealthKit */ = {
+			isa = PBXGroup;
+			children = (
+				18F719B92B58E2AEEA3FF197 /* HealthKitManager.swift */,
+			);
+			path = HealthKit;
+			sourceTree = "<group>";
+		};
+		EE794C8D27E24E67F18A2B73 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				69B1317AA46D614B3EB2C3E5 /* Fitbit */,
+				CD5FB927F84F380BC6396046 /* HealthKit */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		F399348C5E91846CEC20D692 /* FitbitHealthSyncTests */ = {
+			isa = PBXGroup;
+			children = (
+				4F575DAAB42B9B2DDFD37750 /* FitbitHealthSyncTests.swift */,
+			);
+			path = FitbitHealthSyncTests;
+			sourceTree = "<group>";
+		};
+		F4DBE9B4B4169D32E5EBC2A5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AD6F7CBCD1BC4091E0D1754B /* FitbitHealthSync.app */,
+				1B870FA98776C73DF1D2E55C /* FitbitHealthSyncTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		162743DDDFC9C4C7FA176D53 /* FitbitHealthSyncTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC2500D7920B69D716FBE690 /* Build configuration list for PBXNativeTarget "FitbitHealthSyncTests" */;
+			buildPhases = (
+				C7B01201DA105D8D9BA4C201 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8062D3216F690BBF9AD4BFFD /* PBXTargetDependency */,
+			);
+			name = FitbitHealthSyncTests;
+			packageProductDependencies = (
+			);
+			productName = FitbitHealthSyncTests;
+			productReference = 1B870FA98776C73DF1D2E55C /* FitbitHealthSyncTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		945DAF418B974FAD232306AE /* FitbitHealthSync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DBC49A0EA6E8BC64717E8197 /* Build configuration list for PBXNativeTarget "FitbitHealthSync" */;
+			buildPhases = (
+				8E8A981D24AD5ECFCED4697A /* Resources */,
+				2776406249DB986973E2A92C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FitbitHealthSync;
+			packageProductDependencies = (
+			);
+			productName = FitbitHealthSync;
+			productReference = AD6F7CBCD1BC4091E0D1754B /* FitbitHealthSync.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E46C6891717F2D0E1DCF7FE5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					945DAF418B974FAD232306AE = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 914A7C7D48F0BC1700026FEE /* Build configuration list for PBXProject "FitbitHealthSync" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 1D7D5F368BEC6126BD113A9F;
+			minimizedProjectReferenceProxies = 1;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				945DAF418B974FAD232306AE /* FitbitHealthSync */,
+				162743DDDFC9C4C7FA176D53 /* FitbitHealthSyncTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8E8A981D24AD5ECFCED4697A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3F0F88D56DFA4D10AFA08534 /* Assets.xcassets in Resources */,
+				0A8A2545224D8BBFB34D8A31 /* LaunchScreen.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2776406249DB986973E2A92C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E37F7141820B6E6593F33494 /* AppModel.swift in Sources */,
+				82F04D3BF01AB6051F5456EF /* AppStores.swift in Sources */,
+				85F8628C5B1EEC74AFD0EACA /* BackgroundSyncScheduler.swift in Sources */,
+				A26B97AB6240088AA0D1B917 /* FitbitAPIClient.swift in Sources */,
+				A34594FEC1992E9151583C5B /* FitbitAuthManager.swift in Sources */,
+				C92A230439101E72D96DFE76 /* FitbitHealthSyncApp.swift in Sources */,
+				D6988F5CA18B884623F73C30 /* HealthKitManager.swift in Sources */,
+				F6C63100DD2D114AD3A4471F /* KeychainStore.swift in Sources */,
+				AEC1819B578538C3E6EC3EB2 /* Models.swift in Sources */,
+				A05A547F2424888AB7D2D2C8 /* RootView.swift in Sources */,
+				D8B30A00B882ACFF295EFDB6 /* SyncEngine.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C7B01201DA105D8D9BA4C201 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C2AA5EEAFAF468E61AAA498 /* FitbitHealthSyncTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8062D3216F690BBF9AD4BFFD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 945DAF418B974FAD232306AE /* FitbitHealthSync */;
+			targetProxy = 2F0449A6CF50C74C7650E769 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3B77030F650E9FFDD1C042F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4F77F23FA280D26522C1D077 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7F8F6AE8FB79DEED65997B85 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = FitbitHealthSync/Resources/FitbitHealthSync.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = DNQVHANQBU;
+				INFOPLIST_FILE = FitbitHealthSync/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Fitbit Health Sync";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads Apple Health permissions and sync status.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes Fitbit data into Apple Health.";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSync;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9785B71E8EB8E765F3AFE24C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = FitbitHealthSync/Resources/FitbitHealthSync.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = DNQVHANQBU;
+				INFOPLIST_FILE = FitbitHealthSync/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Fitbit Health Sync";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads Apple Health permissions and sync status.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes Fitbit data into Apple Health.";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSync;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BEE4ECA32859887CBED47955 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSyncTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FitbitHealthSync.app/FitbitHealthSync";
+			};
+			name = Debug;
+		};
+		DF13184E9CBBF743434012F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSyncTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FitbitHealthSync.app/FitbitHealthSync";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		914A7C7D48F0BC1700026FEE /* Build configuration list for PBXProject "FitbitHealthSync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4F77F23FA280D26522C1D077 /* Debug */,
+				3B77030F650E9FFDD1C042F9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CC2500D7920B69D716FBE690 /* Build configuration list for PBXNativeTarget "FitbitHealthSyncTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BEE4ECA32859887CBED47955 /* Debug */,
+				DF13184E9CBBF743434012F7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DBC49A0EA6E8BC64717E8197 /* Build configuration list for PBXNativeTarget "FitbitHealthSync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7F8F6AE8FB79DEED65997B85 /* Debug */,
+				9785B71E8EB8E765F3AFE24C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E46C6891717F2D0E1DCF7FE5 /* Project object */;
+}

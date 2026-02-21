@@ -1,0 +1,39 @@
+name: FitbitHealthSync
+options:
+  bundleIdPrefix: com.praveenmurugesan
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+packages: {}
+targets:
+  FitbitHealthSync:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - FitbitHealthSync
+    info:
+      path: FitbitHealthSync/Resources/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.praveenmurugesan.FitbitHealthSync
+        INFOPLIST_KEY_CFBundleDisplayName: "Fitbit Health Sync"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+    entitlements:
+      path: FitbitHealthSync/Resources/FitbitHealthSync.entitlements
+    prebuildScripts: []
+    dependencies: []
+
+  FitbitHealthSyncTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - FitbitHealthSyncTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.praveenmurugesan.FitbitHealthSyncTests
+    dependencies:
+      - target: FitbitHealthSync

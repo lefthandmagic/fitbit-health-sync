@@ -1,0 +1,22 @@
+.DS_Store
+
+# Xcode build artifacts
+build/
+DerivedData/
+*.xcresult
+
+# User-specific Xcode files
+xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+
+# CocoaPods
+Pods/
+
+# Fastlane artifacts
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
