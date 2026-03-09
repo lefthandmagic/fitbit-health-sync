@@ -48,9 +48,9 @@
 		68F256019AC40AD834959E41 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		6FBC6473076A6D1B53E5B5B5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		71F30EF932CA3DCFE1EBA75B /* FitbitAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitAPIClient.swift; sourceTree = "<group>"; };
-		D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AD6F7CBCD1BC4091E0D1754B /* FitbitHealthSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitbitHealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BCA799895DE819A21AD85090 /* BackgroundSyncScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncScheduler.swift; sourceTree = "<group>"; };
+		D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F32691BD01E237C3399C185D /* FitbitHealthSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitbitHealthSync.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -419,6 +419,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitbitHealthSync/Resources/FitbitHealthSync.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = DNQVHANQBU;
 				INFOPLIST_FILE = FitbitHealthSync/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fitbit Health Sync";
@@ -429,9 +430,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSync;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -442,6 +446,7 @@
 				CODE_SIGN_ENTITLEMENTS = FitbitHealthSync/Resources/FitbitHealthSync.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = DNQVHANQBU;
 				INFOPLIST_FILE = FitbitHealthSync/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fitbit Health Sync";
@@ -452,9 +457,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSync;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
