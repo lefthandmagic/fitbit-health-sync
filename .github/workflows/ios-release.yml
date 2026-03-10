@@ -22,6 +22,8 @@ on:
 jobs:
   build-and-upload:
     runs-on: macos-15
+    env:
+      APP_BUNDLE_IDENTIFIER: com.praveenmurugesan.FitbitHealthSync
 
     steps:
       - name: Checkout
@@ -204,6 +206,7 @@ jobs:
         if: ${{ inputs.upload_screenshots }}
         run: |
           fastlane deliver upload_screenshots \
+            --app_identifier "$APP_BUNDLE_IDENTIFIER" \
             --api_key_path "$RUNNER_TEMP/api_key.json" \
             --screenshots_path "$SCREENSHOTS_PATH" \
             --overwrite_screenshots true \
@@ -227,6 +230,7 @@ jobs:
         if: ${{ inputs.upload_store_metadata }}
         run: |
           fastlane deliver \
+            --app_identifier "$APP_BUNDLE_IDENTIFIER" \
             --api_key_path "$RUNNER_TEMP/api_key.json" \
             --metadata_path "fastlane/metadata" \
             --skip_binary_upload true \
