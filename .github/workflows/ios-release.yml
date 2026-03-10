@@ -17,13 +17,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16+
+      - name: Select latest stable Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
 
       - name: Show Xcode
         run: xcodebuild -version && xcodebuild -showsdks
+
+      - name: Enforce iOS SDK 26+
+        env:
+          MIN_IOS_SDK_MAJOR: "26"
+        run: |
+          IOS_SDK_VERSION=$(xcodebuild -showsdks | awk '/iphoneos/ {gsub("iphoneos", "", $NF); print $NF}' | sort -V | awk 'END {print}')
+          if [ -z "$IOS_SDK_VERSION" ]; then
+            echo "Could not detect iPhoneOS SDK version from xcodebuild -showsdks."
+            exit 1
+          fi
+
+          IOS_SDK_MAJOR="${IOS_SDK_VERSION%%.*}"
+          echo "Detected iPhoneOS SDK: $IOS_SDK_VERSION"
+          if [ "$IOS_SDK_MAJOR" -lt "$MIN_IOS_SDK_MAJOR" ]; then
+            echo "Detected iPhoneOS SDK $IOS_SDK_VERSION, but minimum required is iOS SDK $MIN_IOS_SDK_MAJOR+."
+            echo "Update runner/Xcode selection to Xcode 26+ before uploading to App Store Connect."
+            exit 1
+          fi
 
       - name: Install signing certificate and provisioning profile
         env:
