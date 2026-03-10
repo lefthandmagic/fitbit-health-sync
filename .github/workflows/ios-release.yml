@@ -8,6 +8,16 @@ on:
         required: true
         default: true
         type: boolean
+      upload_screenshots:
+        description: "Upload App Store screenshots from fastlane/screenshots"
+        required: true
+        default: true
+        type: boolean
+      upload_store_metadata:
+        description: "Upload App Store metadata from fastlane/metadata"
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   build-and-upload:
@@ -129,11 +139,11 @@ jobs:
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
       - name: Install fastlane
-        if: ${{ inputs.upload_to_testflight }}
+        if: ${{ inputs.upload_to_testflight || inputs.upload_screenshots || inputs.upload_store_metadata }}
         run: sudo gem install fastlane -NV
 
       - name: Create App Store Connect API key JSON
-        if: ${{ inputs.upload_to_testflight }}
+        if: ${{ inputs.upload_to_testflight || inputs.upload_screenshots || inputs.upload_store_metadata }}
         env:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
@@ -160,6 +170,56 @@ jobs:
             --ipa "$RUNNER_TEMP/export/FitbitHealthSync.ipa" \
             --api_key_path "$RUNNER_TEMP/api_key.json" \
             --skip_waiting_for_build_processing true
+
+      - name: Validate screenshot folder
+        if: ${{ inputs.upload_screenshots }}
+        run: |
+          if [ ! -d "fastlane/screenshots" ]; then
+            echo "Expected screenshot directory fastlane/screenshots was not found."
+            exit 1
+          fi
+
+          SCREENSHOT_COUNT=$(rg --files "fastlane/screenshots" -g "*.png" | wc -l | tr -d ' ')
+          if [ "$SCREENSHOT_COUNT" -eq 0 ]; then
+            echo "No PNG screenshots found in fastlane/screenshots."
+            exit 1
+          fi
+
+          echo "Found $SCREENSHOT_COUNT screenshot files."
+
+      - name: Upload screenshots to App Store Connect
+        if: ${{ inputs.upload_screenshots }}
+        run: |
+          fastlane deliver upload_screenshots \
+            --api_key_path "$RUNNER_TEMP/api_key.json" \
+            --screenshots_path "fastlane/screenshots" \
+            --overwrite_screenshots true \
+            --skip_app_version_update true \
+            --force true
+
+      - name: Validate metadata folder
+        if: ${{ inputs.upload_store_metadata }}
+        run: |
+          if [ ! -d "fastlane/metadata" ]; then
+            echo "Expected metadata directory fastlane/metadata was not found."
+            exit 1
+          fi
+
+          if [ ! -f "fastlane/metadata/en-US/promotional_text.txt" ]; then
+            echo "Expected file fastlane/metadata/en-US/promotional_text.txt was not found."
+            exit 1
+          fi
+
+      - name: Upload App Store metadata
+        if: ${{ inputs.upload_store_metadata }}
+        run: |
+          fastlane deliver \
+            --api_key_path "$RUNNER_TEMP/api_key.json" \
+            --metadata_path "fastlane/metadata" \
+            --skip_binary_upload true \
+            --skip_screenshots true \
+            --skip_app_version_update true \
+            --force true
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4

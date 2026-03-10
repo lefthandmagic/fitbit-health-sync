@@ -34,7 +34,9 @@ final class SyncEngine {
     private func sync(metric: SyncMetric) async throws -> Int {
         let now = Date()
         let defaultStart = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? now
-        let start = stateStore.lastSyncDate(for: metric) ?? defaultStart
+        let rawStart = stateStore.lastSyncDate(for: metric) ?? defaultStart
+        // Re-query one day back to tolerate Fitbit ingestion delays around day boundaries.
+        let start = Calendar.current.date(byAdding: .day, value: -1, to: rawStart) ?? rawStart
         let end = now
 
         switch metric {

@@ -1,0 +1,1 @@
+Auto-sync Fitbit data to Apple Health with a clean, private, on-device experience.

@@ -92,7 +92,9 @@ final class FitbitAPIClient {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        // Fitbit day-based endpoints are interpreted in the user's local Fitbit day,
+        // so using device-local timezone avoids "today" being shifted to yesterday in UTC.
+        formatter.timeZone = TimeZone.current
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
     }

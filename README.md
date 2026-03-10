@@ -70,3 +70,21 @@ Then Sync tab:
 
 - iOS background tasks are best effort. The app schedules periodic refresh, but exact execution time is not guaranteed by iOS.
 - If OAuth fails, verify redirect URI and client app settings in Fitbit developer console.
+
+## App Store screenshots (no manual re-upload)
+
+Keep your screenshots in this repo so they are versioned and never lost:
+
+- `fastlane/screenshots/<locale>/...png`
+- Example locale folder: `fastlane/screenshots/en-US/`
+
+The release GitHub Action now supports screenshot upload directly to App Store Connect:
+
+- Run workflow `iOS Release Upload`
+- Keep `upload_screenshots = true`
+- It will upload all PNG files under `fastlane/screenshots` and replace the current screenshots in App Store Connect
+
+App Store metadata is also now managed in-repo:
+
+- Promotion text is stored in `fastlane/metadata/en-US/promotional_text.txt`
+- Keep `upload_store_metadata = true` in the workflow to auto-apply this text on future releases
