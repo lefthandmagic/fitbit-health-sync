@@ -114,13 +114,19 @@ jobs:
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
         run: |
-          cat > "$RUNNER_TEMP/api_key.json" << EOF
-          {
-            "key_id": "$APPSTORE_KEY_ID",
-            "issuer_id": "$APPSTORE_ISSUER_ID",
-            "key": "$APPSTORE_PRIVATE_KEY"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output_path = Path(os.environ["RUNNER_TEMP"]) / "api_key.json"
+          payload = {
+              "key_id": os.environ["APPSTORE_KEY_ID"],
+              "issuer_id": os.environ["APPSTORE_ISSUER_ID"],
+              "key": os.environ["APPSTORE_PRIVATE_KEY"],
           }
-          EOF
+          output_path.write_text(json.dumps(payload), encoding="utf-8")
+          PY
 
       - name: Upload to TestFlight
         if: ${{ inputs.upload_to_testflight }}
