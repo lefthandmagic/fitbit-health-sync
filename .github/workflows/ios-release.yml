@@ -9,7 +9,7 @@ on:
         default: true
         type: boolean
       upload_screenshots:
-        description: "Upload App Store screenshots from fastlane/screenshots"
+        description: "Upload App Store screenshots"
         required: true
         default: true
         type: boolean
@@ -174,25 +174,30 @@ jobs:
       - name: Validate screenshot folder
         if: ${{ inputs.upload_screenshots }}
         run: |
-          if [ ! -d "fastlane/screenshots" ]; then
-            echo "Expected screenshot directory fastlane/screenshots was not found."
+          if [ -d "fastlane/screenshots" ]; then
+            SCREENSHOTS_PATH="fastlane/screenshots"
+          elif [ -d "fastlane/screenshots_archive" ]; then
+            SCREENSHOTS_PATH="fastlane/screenshots_archive"
+          else
+            echo "Expected screenshot directory fastlane/screenshots or fastlane/screenshots_archive was not found."
             exit 1
           fi
 
-          SCREENSHOT_COUNT=$(rg --files "fastlane/screenshots" -g "*.png" | wc -l | tr -d ' ')
+          SCREENSHOT_COUNT=$(rg --files "$SCREENSHOTS_PATH" -g "*.png" | wc -l | tr -d ' ')
           if [ "$SCREENSHOT_COUNT" -eq 0 ]; then
-            echo "No PNG screenshots found in fastlane/screenshots."
+            echo "No PNG screenshots found in $SCREENSHOTS_PATH."
             exit 1
           fi
 
-          echo "Found $SCREENSHOT_COUNT screenshot files."
+          echo "Found $SCREENSHOT_COUNT screenshot files in $SCREENSHOTS_PATH."
+          echo "SCREENSHOTS_PATH=$SCREENSHOTS_PATH" >> "$GITHUB_ENV"
 
       - name: Upload screenshots to App Store Connect
         if: ${{ inputs.upload_screenshots }}
         run: |
           fastlane deliver upload_screenshots \
             --api_key_path "$RUNNER_TEMP/api_key.json" \
-            --screenshots_path "fastlane/screenshots" \
+            --screenshots_path "$SCREENSHOTS_PATH" \
             --overwrite_screenshots true \
             --skip_app_version_update true \
             --force true
