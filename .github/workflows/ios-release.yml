@@ -41,8 +41,12 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH"
 
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$(security cms -D -i "$PP_PATH")")
+          PROFILE_PLIST="$(security cms -D -i "$PP_PATH")"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< "$PROFILE_PLIST")
+          PROFILE_NAME=$(/usr/libexec/PlistBuddy -c "Print Name" /dev/stdin <<< "$PROFILE_PLIST")
           cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
 
       - name: Archive
         run: |
@@ -55,7 +59,11 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM=DNQVHANQBU \
             CODE_SIGN_IDENTITY="Apple Distribution" \
-            PROVISIONING_PROFILE_SPECIFIER="FitbitHealthSync AppStore" \
+            PRODUCT_BUNDLE_IDENTIFIER="com.praveenmurugesan.FitbitHealthSync" \
+            PROVISIONING_PROFILE="$PROFILE_UUID" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGNING_ALLOWED=YES \
             archive
 
       - name: Export IPA
@@ -67,8 +75,15 @@ jobs:
           <dict>
               <key>method</key>
               <string>app-store</string>
+              <key>teamID</key>
+              <string>DNQVHANQBU</string>
               <key>signingStyle</key>
               <string>manual</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.praveenmurugesan.FitbitHealthSync</key>
+                  <string>$PROFILE_NAME</string>
+              </dict>
               <key>stripSwiftSymbols</key>
               <true/>
               <key>uploadBitcode</key>
