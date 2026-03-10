@@ -183,7 +183,15 @@ jobs:
             exit 1
           fi
 
-          SCREENSHOT_COUNT=$(rg --files "$SCREENSHOTS_PATH" -g "*.png" | wc -l | tr -d ' ')
+          SCREENSHOT_COUNT=$(SCREENSHOTS_PATH="$SCREENSHOTS_PATH" python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["SCREENSHOTS_PATH"])
+          count = sum(1 for p in root.rglob("*.png") if p.is_file())
+          print(count)
+          PY
+          )
           if [ "$SCREENSHOT_COUNT" -eq 0 ]; then
             echo "No PNG screenshots found in $SCREENSHOTS_PATH."
             exit 1
