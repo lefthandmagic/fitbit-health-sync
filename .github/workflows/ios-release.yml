@@ -95,11 +95,18 @@ jobs:
       - name: Run tests
         run: |
           TEST_DESTINATION_ID=$(xcodebuild -project "FitbitHealthSync.xcodeproj" -scheme "FitbitHealthSync" -showdestinations \
-            | awk '/platform:iOS Simulator/ && /id:/ { print }' \
-            | sed -n 's/.*id:\([^,}]*\).*/\1/p' \
-            | awk 'NR==1 { print; exit }')
+            | awk '/platform:iOS Simulator/ && /id:/ {
+                id=$0
+                sub(/^.*id:/, "", id)
+                sub(/,.*$/, "", id)
+                if (id !~ /^dvtdevice-/ && length(id) == 36) {
+                  print id
+                  exit
+                }
+              }')
           if [ -z "$TEST_DESTINATION_ID" ]; then
-            echo "Could not find an iOS Simulator destination for scheme FitbitHealthSync."
+            echo "Could not find a concrete iOS Simulator destination UUID for scheme FitbitHealthSync."
+            xcodebuild -project "FitbitHealthSync.xcodeproj" -scheme "FitbitHealthSync" -showdestinations
             exit 1
           fi
 
