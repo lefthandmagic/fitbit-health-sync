@@ -56,6 +56,116 @@ jobs:
             exit 1
           fi
 
+      - name: Install fastlane
+        if: ${{ inputs.upload_to_testflight || inputs.upload_screenshots || inputs.upload_store_metadata }}
+        run: sudo gem install fastlane -NV
+
+      - name: Create App Store Connect API key JSON
+        if: ${{ inputs.upload_to_testflight || inputs.upload_screenshots || inputs.upload_store_metadata }}
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output_path = Path(os.environ["RUNNER_TEMP"]) / "api_key.json"
+          payload = {
+              "key_id": os.environ["APPSTORE_KEY_ID"],
+              "issuer_id": os.environ["APPSTORE_ISSUER_ID"],
+              "key": os.environ["APPSTORE_PRIVATE_KEY"],
+          }
+          output_path.write_text(json.dumps(payload), encoding="utf-8")
+          PY
+
+      - name: Validate screenshot folder
+        if: ${{ inputs.upload_screenshots }}
+        run: |
+          if [ -d "fastlane/screenshots" ]; then
+            SCREENSHOTS_PATH="fastlane/screenshots"
+          elif [ -d "fastlane/screenshots_archive" ]; then
+            SCREENSHOTS_PATH="fastlane/screenshots_archive"
+          else
+            echo "Expected screenshot directory fastlane/screenshots or fastlane/screenshots_archive was not found."
+            exit 1
+          fi
+
+          SCREENSHOT_COUNT=$(SCREENSHOTS_PATH="$SCREENSHOTS_PATH" python3 - <<'PY'
+          import imghdr
+          import os
+          import sys
+          from pathlib import Path
+
+          root = Path(os.environ["SCREENSHOTS_PATH"])
+          allowed = {".png": "png", ".jpg": "jpeg", ".jpeg": "jpeg"}
+          files = [p for p in root.rglob("*") if p.is_file() and p.suffix.lower() in allowed]
+
+          if not files:
+              raise SystemExit("No screenshots found with supported extensions (.png/.jpg/.jpeg).")
+
+          errors = []
+          for path in sorted(files):
+              expected = allowed[path.suffix.lower()]
+              actual = imghdr.what(path)
+              if actual is None:
+                  errors.append(f"{path} - could not determine image format.")
+              elif actual != expected:
+                  errors.append(
+                      f"{path} - extension {path.suffix.lower()} does not match image format {actual}."
+                  )
+
+          if errors:
+              print("Invalid screenshot files detected:", file=sys.stderr)
+              for err in errors:
+                  print(f"- {err}", file=sys.stderr)
+              raise SystemExit(1)
+
+          print(len(files))
+          PY
+          )
+
+          echo "Found $SCREENSHOT_COUNT valid screenshot files in $SCREENSHOTS_PATH."
+          echo "SCREENSHOTS_PATH=$SCREENSHOTS_PATH" >> "$GITHUB_ENV"
+
+      - name: Upload screenshots to App Store Connect
+        if: ${{ inputs.upload_screenshots }}
+        run: |
+          fastlane deliver upload_screenshots \
+            --app_identifier "$APP_BUNDLE_IDENTIFIER" \
+            --api_key_path "$RUNNER_TEMP/api_key.json" \
+            --screenshots_path "$SCREENSHOTS_PATH" \
+            --overwrite_screenshots true \
+            --skip_app_version_update true \
+            --force true
+
+      - name: Validate metadata folder
+        if: ${{ inputs.upload_store_metadata }}
+        run: |
+          if [ ! -d "fastlane/metadata" ]; then
+            echo "Expected metadata directory fastlane/metadata was not found."
+            exit 1
+          fi
+
+          if [ ! -f "fastlane/metadata/en-US/promotional_text.txt" ]; then
+            echo "Expected file fastlane/metadata/en-US/promotional_text.txt was not found."
+            exit 1
+          fi
+
+      - name: Upload App Store metadata
+        if: ${{ inputs.upload_store_metadata }}
+        run: |
+          fastlane deliver \
+            --app_identifier "$APP_BUNDLE_IDENTIFIER" \
+            --api_key_path "$RUNNER_TEMP/api_key.json" \
+            --metadata_path "fastlane/metadata" \
+            --skip_binary_upload true \
+            --skip_screenshots true \
+            --skip_app_version_update true \
+            --force true
+
       - name: Install signing certificate and provisioning profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -175,31 +285,6 @@ jobs:
             -exportPath "$RUNNER_TEMP/export" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
 
-      - name: Install fastlane
-        if: ${{ inputs.upload_to_testflight || inputs.upload_screenshots || inputs.upload_store_metadata }}
-        run: sudo gem install fastlane -NV
-
-      - name: Create App Store Connect API key JSON
-        if: ${{ inputs.upload_to_testflight || inputs.upload_screenshots || inputs.upload_store_metadata }}
-        env:
-          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
-          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
-          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          output_path = Path(os.environ["RUNNER_TEMP"]) / "api_key.json"
-          payload = {
-              "key_id": os.environ["APPSTORE_KEY_ID"],
-              "issuer_id": os.environ["APPSTORE_ISSUER_ID"],
-              "key": os.environ["APPSTORE_PRIVATE_KEY"],
-          }
-          output_path.write_text(json.dumps(payload), encoding="utf-8")
-          PY
-
       - name: Upload to TestFlight
         if: ${{ inputs.upload_to_testflight }}
         run: |
@@ -207,71 +292,6 @@ jobs:
             --ipa "$RUNNER_TEMP/export/FitbitHealthSync.ipa" \
             --api_key_path "$RUNNER_TEMP/api_key.json" \
             --skip_waiting_for_build_processing true
-
-      - name: Validate screenshot folder
-        if: ${{ inputs.upload_screenshots }}
-        run: |
-          if [ -d "fastlane/screenshots" ]; then
-            SCREENSHOTS_PATH="fastlane/screenshots"
-          elif [ -d "fastlane/screenshots_archive" ]; then
-            SCREENSHOTS_PATH="fastlane/screenshots_archive"
-          else
-            echo "Expected screenshot directory fastlane/screenshots or fastlane/screenshots_archive was not found."
-            exit 1
-          fi
-
-          SCREENSHOT_COUNT=$(SCREENSHOTS_PATH="$SCREENSHOTS_PATH" python3 - <<'PY'
-          import os
-          from pathlib import Path
-
-          root = Path(os.environ["SCREENSHOTS_PATH"])
-          count = sum(1 for p in root.rglob("*.png") if p.is_file())
-          print(count)
-          PY
-          )
-          if [ "$SCREENSHOT_COUNT" -eq 0 ]; then
-            echo "No PNG screenshots found in $SCREENSHOTS_PATH."
-            exit 1
-          fi
-
-          echo "Found $SCREENSHOT_COUNT screenshot files in $SCREENSHOTS_PATH."
-          echo "SCREENSHOTS_PATH=$SCREENSHOTS_PATH" >> "$GITHUB_ENV"
-
-      - name: Upload screenshots to App Store Connect
-        if: ${{ inputs.upload_screenshots }}
-        run: |
-          fastlane deliver upload_screenshots \
-            --app_identifier "$APP_BUNDLE_IDENTIFIER" \
-            --api_key_path "$RUNNER_TEMP/api_key.json" \
-            --screenshots_path "$SCREENSHOTS_PATH" \
-            --overwrite_screenshots true \
-            --skip_app_version_update true \
-            --force true
-
-      - name: Validate metadata folder
-        if: ${{ inputs.upload_store_metadata }}
-        run: |
-          if [ ! -d "fastlane/metadata" ]; then
-            echo "Expected metadata directory fastlane/metadata was not found."
-            exit 1
-          fi
-
-          if [ ! -f "fastlane/metadata/en-US/promotional_text.txt" ]; then
-            echo "Expected file fastlane/metadata/en-US/promotional_text.txt was not found."
-            exit 1
-          fi
-
-      - name: Upload App Store metadata
-        if: ${{ inputs.upload_store_metadata }}
-        run: |
-          fastlane deliver \
-            --app_identifier "$APP_BUNDLE_IDENTIFIER" \
-            --api_key_path "$RUNNER_TEMP/api_key.json" \
-            --metadata_path "fastlane/metadata" \
-            --skip_binary_upload true \
-            --skip_screenshots true \
-            --skip_app_version_update true \
-            --force true
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
