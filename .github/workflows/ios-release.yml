@@ -153,6 +153,7 @@ jobs:
             --skip_app_version_update true \
             --skip_binary_upload true \
             --skip_metadata true \
+            --use_live_version true \
             --force true
 
       - name: Validate metadata folder
@@ -178,6 +179,7 @@ jobs:
             --skip_binary_upload true \
             --skip_screenshots true \
             --skip_app_version_update true \
+            --use_live_version true \
             --force true
 
       - name: Install signing certificate and provisioning profile
