@@ -94,8 +94,8 @@ jobs:
           fi
 
           SCREENSHOT_COUNT=$(SCREENSHOTS_PATH="$SCREENSHOTS_PATH" python3 - <<'PY'
-          import imghdr
           import os
+          import subprocess
           import sys
           from pathlib import Path
 
@@ -109,9 +109,21 @@ jobs:
           errors = []
           for path in sorted(files):
               expected = allowed[path.suffix.lower()]
-              actual = imghdr.what(path)
+              result = subprocess.run(
+                  ["file", "-b", "--mime-type", str(path)],
+                  check=False,
+                  capture_output=True,
+                  text=True,
+              )
+              actual_mime = result.stdout.strip().lower()
+              actual = None
+              if actual_mime == "image/png":
+                  actual = "png"
+              elif actual_mime in ("image/jpeg", "image/jpg"):
+                  actual = "jpeg"
+
               if actual is None:
-                  errors.append(f"{path} - could not determine image format.")
+                  errors.append(f"{path} - unsupported or unknown image MIME type: {actual_mime}.")
               elif actual != expected:
                   errors.append(
                       f"{path} - extension {path.suffix.lower()} does not match image format {actual}."
