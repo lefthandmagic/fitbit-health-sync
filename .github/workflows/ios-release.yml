@@ -296,7 +296,7 @@ jobs:
           echo "$DELIVER_OUTPUT"
 
           if [ "$DELIVER_STATUS" -ne 0 ]; then
-            if [[ "$DELIVER_OUTPUT" == *"Could not find a version to edit"* ]]; then
+            if [[ "$DELIVER_OUTPUT" == *"Could not find a version to edit"* ]] || [[ "$DELIVER_OUTPUT" == *"Cannot find edit app store version"* ]] || [[ "$DELIVER_OUTPUT" == *"could not find an editable version"* ]]; then
               echo "No editable App Store version exists yet. Skipping screenshot upload for this run."
             else
               exit "$DELIVER_STATUS"
@@ -335,7 +335,7 @@ jobs:
           echo "$DELIVER_OUTPUT"
 
           if [ "$DELIVER_STATUS" -ne 0 ]; then
-            if [[ "$DELIVER_OUTPUT" == *"Could not find a version to edit"* ]]; then
+            if [[ "$DELIVER_OUTPUT" == *"Could not find a version to edit"* ]] || [[ "$DELIVER_OUTPUT" == *"Cannot find edit app store version"* ]] || [[ "$DELIVER_OUTPUT" == *"could not find an editable version"* ]]; then
               echo "No editable App Store version exists yet. Skipping metadata upload for this run."
             else
               exit "$DELIVER_STATUS"
