@@ -288,6 +288,7 @@ jobs:
             --skip_app_version_update true \
             --skip_binary_upload true \
             --skip_metadata true \
+            --version_check_wait_retry_limit 1 \
             --use_live_version true \
             --force true 2>&1)
           DELIVER_STATUS=$?
@@ -326,6 +327,7 @@ jobs:
             --skip_binary_upload true \
             --skip_screenshots true \
             --skip_app_version_update true \
+            --version_check_wait_retry_limit 1 \
             --use_live_version true \
             --force true 2>&1)
           DELIVER_STATUS=$?
