@@ -92,6 +92,25 @@ jobs:
           echo "Using MARKETING_VERSION=$MARKETING_VERSION"
           echo "Using CURRENT_PROJECT_VERSION=${{ github.run_number }}"
 
+      - name: Run tests
+        run: |
+          TEST_DESTINATION_ID=$(xcodebuild -project "FitbitHealthSync.xcodeproj" -scheme "FitbitHealthSync" -showdestinations \
+            | awk '/platform:iOS Simulator/ && /id:/ { print }' \
+            | sed -n 's/.*id:\([^,}]*\).*/\1/p' \
+            | awk 'NR==1 { print; exit }')
+          if [ -z "$TEST_DESTINATION_ID" ]; then
+            echo "Could not find an iOS Simulator destination for scheme FitbitHealthSync."
+            exit 1
+          fi
+
+          xcodebuild \
+            -project "FitbitHealthSync.xcodeproj" \
+            -scheme "FitbitHealthSync" \
+            -configuration Debug \
+            -destination "id=$TEST_DESTINATION_ID" \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+
       - name: Archive
         run: |
           xcodebuild \
