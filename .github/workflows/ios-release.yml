@@ -145,7 +145,8 @@ jobs:
       - name: Upload screenshots to App Store Connect
         if: ${{ inputs.upload_screenshots }}
         run: |
-          fastlane deliver \
+          set +e
+          DELIVER_OUTPUT=$(fastlane deliver \
             --app_identifier "$APP_BUNDLE_IDENTIFIER" \
             --api_key_path "$RUNNER_TEMP/api_key.json" \
             --screenshots_path "$SCREENSHOTS_PATH" \
@@ -154,7 +155,18 @@ jobs:
             --skip_binary_upload true \
             --skip_metadata true \
             --use_live_version true \
-            --force true
+            --force true 2>&1)
+          DELIVER_STATUS=$?
+          set -e
+          echo "$DELIVER_OUTPUT"
+
+          if [ "$DELIVER_STATUS" -ne 0 ]; then
+            if [[ "$DELIVER_OUTPUT" == *"Could not find a version to edit"* ]]; then
+              echo "No editable App Store version exists yet. Skipping screenshot upload for this run."
+            else
+              exit "$DELIVER_STATUS"
+            fi
+          fi
 
       - name: Validate metadata folder
         if: ${{ inputs.upload_store_metadata }}
@@ -172,7 +184,8 @@ jobs:
       - name: Upload App Store metadata
         if: ${{ inputs.upload_store_metadata }}
         run: |
-          fastlane deliver \
+          set +e
+          DELIVER_OUTPUT=$(fastlane deliver \
             --app_identifier "$APP_BUNDLE_IDENTIFIER" \
             --api_key_path "$RUNNER_TEMP/api_key.json" \
             --metadata_path "fastlane/metadata" \
@@ -180,7 +193,18 @@ jobs:
             --skip_screenshots true \
             --skip_app_version_update true \
             --use_live_version true \
-            --force true
+            --force true 2>&1)
+          DELIVER_STATUS=$?
+          set -e
+          echo "$DELIVER_OUTPUT"
+
+          if [ "$DELIVER_STATUS" -ne 0 ]; then
+            if [[ "$DELIVER_OUTPUT" == *"Could not find a version to edit"* ]]; then
+              echo "No editable App Store version exists yet. Skipping metadata upload for this run."
+            else
+              exit "$DELIVER_STATUS"
+            fi
+          fi
 
       - name: Install signing certificate and provisioning profile
         env:
