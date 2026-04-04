@@ -119,7 +119,8 @@ jobs:
 
       - name: Run tests
         run: |
-          TEST_DESTINATION_ID=$(xcodebuild -project "FitbitHealthSync.xcodeproj" -scheme "FitbitHealthSync" -showdestinations \
+          DESTINATIONS=$(xcodebuild -project "FitbitHealthSync.xcodeproj" -scheme "FitbitHealthSync" -showdestinations)
+          TEST_DESTINATION_ID=$(printf "%s\n" "$DESTINATIONS" \
             | awk '/platform:iOS Simulator/ && /id:/ {
                 id=$0
                 sub(/^.*id:/, "", id)
@@ -130,8 +131,23 @@ jobs:
                 }
               }')
           if [ -z "$TEST_DESTINATION_ID" ]; then
-            echo "Could not find a concrete iOS Simulator destination UUID for scheme FitbitHealthSync."
-            xcodebuild -project "FitbitHealthSync.xcodeproj" -scheme "FitbitHealthSync" -showdestinations
+            TEST_DESTINATION_ID=$(printf "%s\n" "$DESTINATIONS" \
+              | awk '/platform:macOS/ && /variant:Designed for \[iPad,iPhone\]/ && /id:/ {
+                  id=$0
+                  sub(/^.*id:/, "", id)
+                  sub(/,.*$/, "", id)
+                  if (id !~ /^dvtdevice-/ && length(id) > 0) {
+                    print id
+                    exit
+                  }
+                }')
+            if [ -n "$TEST_DESTINATION_ID" ]; then
+              echo "No concrete iOS Simulator destination available; using My Mac Designed for iPad/iPhone destination."
+            fi
+          fi
+          if [ -z "$TEST_DESTINATION_ID" ]; then
+            echo "Could not find a concrete test destination for scheme FitbitHealthSync."
+            printf "%s\n" "$DESTINATIONS"
             exit 1
           fi
 
