@@ -64,4 +64,26 @@ final class FitbitHealthSyncTests: XCTestCase {
         XCTAssertTrue(store.hasSeen(identifier: identifier, metric: .bodyWeight))
         XCTAssertFalse(store.hasSeen(identifier: identifier, metric: .bodyFat))
     }
+
+    func testSleepDateParsing() {
+        // Standard ISO 8601 with timezone (UTC)
+        let date1 = SyncEngine.parseSleepDate("2020-05-16T03:01:00Z")
+        XCTAssertNotNil(date1)
+        
+        // Standard ISO 8601 with timezone offset
+        let date2 = SyncEngine.parseSleepDate("2020-05-16T03:01:00-04:00")
+        XCTAssertNotNil(date2)
+
+        // Fitbit style: ISO 8601 with fractional seconds (milliseconds) and no timezone offset
+        let date3 = SyncEngine.parseSleepDate("2020-05-16T03:01:00.000")
+        XCTAssertNotNil(date3)
+        
+        // Fitbit style: ISO 8601 without fractional seconds and no timezone offset
+        let date4 = SyncEngine.parseSleepDate("2020-05-16T03:01:00")
+        XCTAssertNotNil(date4)
+
+        // Invalid format
+        let dateInvalid = SyncEngine.parseSleepDate("invalid-date-format")
+        XCTAssertNil(dateInvalid)
+    }
 }

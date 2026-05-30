@@ -129,14 +129,13 @@ final class SyncEngine {
     private func syncSleep(start: Date, end: Date) async throws -> Int {
         let logs = try await fitbit.fetchSleepLogs(start: start, end: end)
         var written = 0
-        let formatter = ISO8601DateFormatter()
         for item in logs {
             let syncID = "fitbit-sleep-\(item.logId ?? Int64.random(in: 0...9_999_999))"
             guard !stateStore.hasSeen(identifier: syncID, metric: .sleep) else { continue }
             guard let startText = item.startTime,
                   let endText = item.endTime,
-                  let sleepStart = formatter.date(from: startText),
-                  let sleepEnd = formatter.date(from: endText) else {
+                  let sleepStart = Self.parseSleepDate(startText),
+                  let sleepEnd = Self.parseSleepDate(endText) else {
                 continue
             }
             try await healthKit.saveSleep(start: sleepStart, end: sleepEnd, syncID: syncID)
@@ -144,6 +143,30 @@ final class SyncEngine {
             written += 1
         }
         return written
+    }
+
+    static func parseSleepDate(_ text: String) -> Date? {
+        let isoFormatter = ISO8601DateFormatter()
+        if let date = isoFormatter.date(from: text) {
+            return date
+        }
+        
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .iso8601)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+        if let date = formatter.date(from: text) {
+            return date
+        }
+        
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        if let date = formatter.date(from: text) {
+            return date
+        }
+        
+        return nil
     }
 
     private func parseDate(_ text: String) -> Date {
