@@ -120,19 +120,25 @@ private struct HomeView: View {
     // MARK: Status row
 
     private var statusRow: some View {
-        HStack(spacing: 12) {
-            StatusTile(
-                symbol: "clock.arrow.circlepath",
-                label: "Last Sync",
-                value: model.lastSyncText,
-                tint: .indigo
-            )
-            StatusTile(
-                symbol: model.isSyncing ? "arrow.triangle.2.circlepath" : "checkmark.circle",
-                label: "Status",
-                value: model.isSyncing ? "Syncing..." : "Idle",
-                tint: model.isSyncing ? .blue : .green
-            )
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                StatusTile(
+                    symbol: "clock.arrow.circlepath",
+                    label: "Last Sync",
+                    value: model.lastSyncText,
+                    tint: .indigo
+                )
+                StatusTile(
+                    symbol: model.isSyncing ? "arrow.triangle.2.circlepath" : "checkmark.circle",
+                    label: "Status",
+                    value: model.isSyncing ? "Syncing..." : "Idle",
+                    tint: model.isSyncing ? .blue : .green
+                )
+            }
+            Text("Background: \(model.lastBackgroundText)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4)
         }
     }
 
@@ -268,7 +274,7 @@ private struct SettingsView: View {
                     } header: {
                         Text("Background Sync Interval")
                     } footer: {
-                        Text("Best-effort only — iOS schedules background tasks based on device usage patterns.")
+                        Text("iOS decides when background sync actually runs. After installing a new build, open the app once, tap Sync Now, then leave it overnight. Check Activity for a “BG:” line — that’s the proof it ran.")
                     }
 
                     Section("Metrics to Sync") {

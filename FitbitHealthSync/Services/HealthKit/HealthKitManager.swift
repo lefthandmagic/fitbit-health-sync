@@ -27,6 +27,14 @@ final class HealthKitManager {
         try await healthStore.requestAuthorization(toShare: writeTypes, read: [])
     }
 
+    /// Metrics this install is already allowed to write. Never prompts — safe in a background task.
+    func writableMetrics(from metrics: Set<SyncMetric>) -> Set<SyncMetric> {
+        Set(metrics.filter { metric in
+            guard let type = hkType(for: metric) else { return false }
+            return healthStore.authorizationStatus(for: type) == .sharingAuthorized
+        })
+    }
+
     func saveBodyWeight(kg: Double, date: Date, syncID: String) async throws {
         guard let type = HKObjectType.quantityType(forIdentifier: .bodyMass) else { return }
         let unit = HKUnit.gramUnit(with: .kilo)
@@ -89,6 +97,7 @@ final class HealthKitManager {
     }
 
     func saveSleep(start: Date, end: Date, syncID: String) async throws {
+        guard end > start else { return }
         guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else { return }
         let sample = HKCategorySample(
             type: type,

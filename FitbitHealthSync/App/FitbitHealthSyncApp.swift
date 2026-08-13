@@ -2,11 +2,16 @@ import SwiftUI
 import UIKit
 
 @main
+@MainActor
 struct FitbitHealthSyncApp: App {
-    @StateObject private var model = AppModel()
+    @StateObject private var model: AppModel
 
     init() {
         configureAppearance()
+        let model = AppModel()
+        // Handlers must be registered before launch finishes — onAppear is too late.
+        model.backgroundScheduler.registerLaunchHandlers()
+        _model = StateObject(wrappedValue: model)
     }
 
     var body: some Scene {
@@ -14,7 +19,6 @@ struct FitbitHealthSyncApp: App {
             RootView()
                 .environmentObject(model)
                 .onAppear {
-                    model.backgroundScheduler.register()
                     model.backgroundScheduler.scheduleNext()
                 }
         }

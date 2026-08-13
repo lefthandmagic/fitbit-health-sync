@@ -148,4 +148,15 @@ final class FitbitHealthSyncTests: XCTestCase {
         XCTAssertEqual(FitbitSunset.daysRemaining(now: before), 19)
         XCTAssertTrue(FitbitSunset.subtitle(now: before).contains("19 days"))
     }
+
+    func testBackgroundTaskIdentifiers() {
+        XCTAssertEqual(
+            BackgroundSyncScheduler.refreshIdentifier,
+            "com.praveenmurugesan.FitbitHealthSync.refresh"
+        )
+        XCTAssertEqual(
+            BackgroundSyncScheduler.processingIdentifier,
+            "com.praveenmurugesan.FitbitHealthSync.processing"
+        )
+    }
 }

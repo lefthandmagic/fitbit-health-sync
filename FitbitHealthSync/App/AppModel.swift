@@ -6,6 +6,7 @@ final class AppModel: ObservableObject {
     @Published var isConnected = false
     @Published var isSyncing = false
     @Published var lastSyncText = "Never"
+    @Published var lastBackgroundText = "Never"
     @Published var logs: [String] = []
     @Published var authProvider: HealthAuthProvider?
     @Published var needsGoogleReconnect = false
@@ -24,6 +25,10 @@ final class AppModel: ObservableObject {
     /// Fitbit Web API is turned down September 2026.
     static let fitbitSunset = FitbitSunset.date
 
+    private static let lastSyncKey = "sync.lastFinishedAt"
+    private static let backgroundTextKey = "sync.lastBackgroundText"
+    private static let persistedLogsKey = "sync.persistedLogs"
+
     init(
         settingsStore: AppSettingsStore = AppSettingsStore(),
         stateStore: SyncStateStore = SyncStateStore(),
@@ -34,6 +39,8 @@ final class AppModel: ObservableObject {
         self.keychainStore = keychainStore
         refreshAuthState()
         refreshLastSyncText()
+        loadPersistedLogs()
+        lastBackgroundText = UserDefaults.standard.string(forKey: Self.backgroundTextKey) ?? "Never"
     }
 
     var connectionTitle: String {
@@ -113,12 +120,25 @@ final class AppModel: ObservableObject {
     }
 
     @discardableResult
-    func syncNow(trigger: String = "manual") async throws -> SyncRunResult {
+    func syncNow(trigger: String = "manual", requestAuth: Bool = true) async throws -> SyncRunResult {
         if isSyncing { throw NSError(domain: "Sync", code: 1, userInfo: [NSLocalizedDescriptionKey: "Sync already in progress"]) }
         isSyncing = true
         defer { isSyncing = false }
         appendLog("Starting \(trigger) sync...")
-        try await healthKit.requestAuthorization(for: settingsStore.enabledMetrics)
+        let metrics: Set<SyncMetric>
+        if requestAuth {
+            try await healthKit.requestAuthorization(for: settingsStore.enabledMetrics)
+            metrics = settingsStore.enabledMetrics
+        } else {
+            metrics = healthKit.writableMetrics(from: settingsStore.enabledMetrics)
+            guard !metrics.isEmpty else {
+                throw NSError(
+                    domain: "Sync",
+                    code: 3,
+                    userInfo: [NSLocalizedDescriptionKey: "HealthKit not authorized"]
+                )
+            }
+        }
         let client: HealthDataClient
         let prefix: String
         switch authProvider {
@@ -130,7 +150,7 @@ final class AppModel: ObservableObject {
             prefix = "fitbit"
         }
         let engine = SyncEngine(client: client, healthKit: healthKit, stateStore: stateStore, idPrefix: prefix)
-        let result = try await engine.run(metrics: settingsStore.enabledMetrics)
+        let result = try await engine.run(metrics: metrics)
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
@@ -142,25 +162,74 @@ final class AppModel: ObservableObject {
         return result
     }
 
+    func runBackgroundSync(kind: String) async -> Bool {
+        recordBackground("Starting \(kind)")
+        guard isConnected else {
+            recordBackground("\(kind) skipped — not connected")
+            return true
+        }
+        do {
+            _ = try await syncNow(trigger: "background-\(kind)", requestAuth: false)
+            recordBackground("\(kind) ok")
+            return true
+        } catch {
+            if Task.isCancelled { return false }
+            let text = error.localizedDescription
+            if text.contains("HealthKit not authorized") {
+                recordBackground("\(kind) skipped — open app and Sync Now once to grant Health")
+                return true
+            }
+            if text.contains("already in progress") {
+                recordBackground("\(kind) skipped — sync already running")
+                return true
+            }
+            recordBackground("\(kind) failed — \(text)")
+            return false
+        }
+    }
+
+    func markBackgroundExpired(kind: String) {
+        recordBackground("\(kind) expired — iOS ended the task")
+    }
+
     func appendLog(_ message: String) {
         let timestamp = ISO8601DateFormatter().string(from: Date())
         logs.insert("[\(timestamp)] \(message)", at: 0)
         if logs.count > 300 { logs = Array(logs.prefix(300)) }
+        persistLogs()
     }
 
     func clearLogs() {
         logs.removeAll()
+        persistLogs()
+    }
+
+    private func recordBackground(_ message: String) {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        lastBackgroundText = "\(formatter.string(from: Date())) · \(message)"
+        UserDefaults.standard.set(lastBackgroundText, forKey: Self.backgroundTextKey)
+        appendLog("BG: \(message)")
+    }
+
+    private func persistLogs() {
+        UserDefaults.standard.set(Array(logs.prefix(80)), forKey: Self.persistedLogsKey)
+    }
+
+    private func loadPersistedLogs() {
+        logs = UserDefaults.standard.stringArray(forKey: Self.persistedLogsKey) ?? []
     }
 
     private func persistLastSync(_ date: Date) {
-        UserDefaults.standard.set(ISO8601DateFormatter().string(from: date), forKey: "sync.lastFinishedAt")
+        UserDefaults.standard.set(ISO8601DateFormatter().string(from: date), forKey: Self.lastSyncKey)
     }
 
     private func refreshLastSyncText() {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        if let raw = UserDefaults.standard.string(forKey: "sync.lastFinishedAt"),
+        if let raw = UserDefaults.standard.string(forKey: Self.lastSyncKey),
            let date = ISO8601DateFormatter().date(from: raw) {
             lastSyncText = formatter.string(from: date)
             return
