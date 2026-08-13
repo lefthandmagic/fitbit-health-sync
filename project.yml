@@ -29,6 +29,8 @@ targets:
               - com.googleusercontent.apps.547556030049-csoh2cpvu82k3ub8b0gie0gk2k7mhhgc
         NSHealthShareUsageDescription: Reads health permissions and sync status.
         NSHealthUpdateUsageDescription: Writes Fitbit / Google Health data into Apple Health.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UIBackgroundModes:
@@ -48,6 +50,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.praveenmurugesan.FitbitHealthSync
         INFOPLIST_KEY_CFBundleDisplayName: "Fitbit Health Sync"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
     prebuildScripts: []
