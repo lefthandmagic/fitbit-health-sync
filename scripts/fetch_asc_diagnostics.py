@@ -6,6 +6,9 @@ Does not print the key or JWT. Full diagnostic logs stay off stdout.
 """
 from __future__ import annotations
 
+import csv
+import gzip
+import io
 import json
 import os
 import sys
@@ -113,6 +116,73 @@ def paged(token: str, path: str, accept: str = "application/json") -> list[dict[
     return out
 
 
+def is_priority_report(name: str) -> bool:
+    n = (name or "").lower()
+    if n.startswith("app crashes"):
+        return True
+    return any(
+        key in n
+        for key in (
+            "app downloads standard",
+            "app downloads detailed",
+            "app sessions standard",
+            "app store installation and deletion",
+            "app store discovery and engagement",
+        )
+    )
+
+
+def download_presigned(url: str) -> bytes:
+    req = urllib.request.Request(url, method="GET")
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        return resp.read()
+
+
+def csv_preview(raw_gz: bytes) -> dict[str, Any]:
+    try:
+        text = gzip.decompress(raw_gz).decode("utf-8", errors="replace")
+    except OSError:
+        text = raw_gz.decode("utf-8", errors="replace")
+    sample = text[:4096]
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=",\t")
+    except csv.Error:
+        dialect = csv.excel
+    reader = csv.DictReader(io.StringIO(text), dialect=dialect)
+    headers = reader.fieldnames or []
+    rows = list(reader)
+    numeric: dict[str, float] = {}
+    for col in headers:
+        total = 0.0
+        ok = 0
+        for row in rows:
+            val = (row.get(col) or "").replace(",", "").strip()
+            try:
+                total += float(val)
+                ok += 1
+            except ValueError:
+                pass
+        if ok and ok >= max(1, len(rows) // 4):
+            numeric[col] = total
+    return {
+        "headers": headers[:24],
+        "rowCount": len(rows),
+        "numericSums": {k: round(v, 2) for k, v in list(numeric.items())[:12]},
+    }
+
+
+def instance_preview(token: str, instance_id: str) -> dict[str, Any]:
+    segs = paged(token, f"/v1/analyticsReportInstances/{instance_id}/segments?limit=20")
+    previews = []
+    for seg in segs[:3]:
+        url = (seg.get("attributes") or {}).get("url")
+        if not url:
+            continue
+        blob = download_presigned(url)
+        previews.append(csv_preview(blob))
+    return {"segmentCount": len(segs), "previews": previews}
+
+
 def main() -> int:
     key_id = os.environ.get("APPSTORE_KEY_ID", "").strip()
     issuer_id = os.environ.get("APPSTORE_ISSUER_ID", "").strip()
@@ -201,6 +271,7 @@ def main() -> int:
     else:
         print("ONE_TIME_SNAPSHOT already exists — not creating another")
 
+    report_summaries: list[dict[str, Any]] = []
     if st == 200:
         for item in existing.get("data") or []:
             a = item.get("attributes") or {}
@@ -216,23 +287,10 @@ def main() -> int:
             interesting = []
             for report in reports:
                 ra = report.get("attributes") or {}
-                name = (ra.get("name") or "")
-                cat = ra.get("category") or ""
-                blob = f"{name} {cat}".lower()
-                if any(
-                    key in blob
-                    for key in (
-                        "crash",
-                        "download",
-                        "session",
-                        "install",
-                        "deletion",
-                        "discover",
-                        "engagement",
-                    )
-                ):
-                    interesting.append((report.get("id"), name, cat))
-            print(f"    {len(reports)} reports · {len(interesting)} commerce/usage/crash")
+                name = ra.get("name") or ""
+                if is_priority_report(name):
+                    interesting.append((report.get("id"), name, ra.get("category") or ""))
+            print(f"    {len(reports)} reports · {len(interesting)} priority")
             for rid, name, cat in interesting:
                 print(f"    • {name} [{cat}]")
                 try:
@@ -244,12 +302,29 @@ def main() -> int:
                     print(f"      instances → {exc}")
                     continue
                 print(f"      {len(instances)} instances")
-                for inst in instances[:3]:
+                entry: dict[str, Any] = {
+                    "name": name,
+                    "category": cat,
+                    "instanceCount": len(instances),
+                }
+                for inst in instances[:1]:
                     ia = inst.get("attributes") or {}
                     print(
                         f"      instance {inst.get('id')} granularity={ia.get('granularity')} "
                         f"processing={ia.get('processingDate')}"
                     )
+                    try:
+                        entry["csv"] = instance_preview(token, inst.get("id"))
+                        for prev in (entry["csv"].get("previews") or []):
+                            print(
+                                f"      csv rows={prev.get('rowCount')} "
+                                f"headers={','.join(prev.get('headers') or [])[:180]}"
+                            )
+                            if prev.get("numericSums"):
+                                print(f"      sums={prev.get('numericSums')}")
+                    except Exception as exc:  # noqa: BLE001
+                        print(f"      csv → {exc}")
+                report_summaries.append(entry)
 
     builds = []
     try:
@@ -300,20 +375,23 @@ def main() -> int:
                     f"    w={sa.get('weight')}  {sa.get('signature')}"
                 )
 
+    instance_total = sum(int(r.get("instanceCount") or 0) for r in report_summaries)
+    ready = instance_total > 0
     summary_path = os.environ.get("ASC_SUMMARY_PATH", "asc-diagnostics-summary.json")
+    payload = {
+        "appId": app_id,
+        "bundleId": BUNDLE_ID,
+        "ready": ready,
+        "instanceTotal": instance_total,
+        "reports": report_summaries,
+        "signatureCount": len(crash_rows),
+        "signatures": crash_rows,
+    }
     with open(summary_path, "w", encoding="utf-8") as fh:
-        json.dump(
-            {
-                "appId": app_id,
-                "bundleId": BUNDLE_ID,
-                "signatureCount": len(crash_rows),
-                "signatures": crash_rows,
-            },
-            fh,
-            indent=2,
-        )
+        json.dump(payload, fh, indent=2)
         fh.write("\n")
-    print(f"Wrote {summary_path} ({len(crash_rows)} signatures, no stack traces)")
+    print(f"ASC_READY={'1' if ready else '0'} instances={instance_total}")
+    print(f"Wrote {summary_path} ({len(crash_rows)} signatures, {len(report_summaries)} reports)")
     return 0
 
 
