@@ -133,7 +133,7 @@ final class GoogleHealthAPIClient: HealthDataClient {
             let url = URL(string: "\(GoogleHealthConfig.apiBase)/users/me/dataTypes/\(dataType)/dataPoints:dailyRollUp")!
             let response: DailyRollUpResponse = try await request(url: url, method: "POST", jsonBody: body)
             for point in response.rollupDataPoints ?? [] {
-                guard let day = point.civilStartTime?.date?.dateValue else { continue }
+                guard let day = point.civilStartTime?.date.dateValue else { continue }
                 if let metric = map(point, day) {
                     out.append(metric)
                 }
