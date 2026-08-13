@@ -2,10 +2,14 @@ import Foundation
 import Security
 
 final class KeychainStore {
-    enum Key: String {
+    enum Key: String, CaseIterable {
         case accessToken = "fitbit.accessToken"
         case refreshToken = "fitbit.refreshToken"
         case expiresAt = "fitbit.expiresAt"
+        case googleAccessToken = "google.accessToken"
+        case googleRefreshToken = "google.refreshToken"
+        case googleExpiresAt = "google.expiresAt"
+        case oauthProvider = "oauth.provider"
     }
 
     func set(_ value: String, for key: Key) {
@@ -37,12 +41,26 @@ final class KeychainStore {
     }
 
     func clearAll() {
-        [Key.accessToken, .refreshToken, .expiresAt].forEach { key in
-            let query: [String: Any] = [
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrAccount as String: key.rawValue
-            ]
-            SecItemDelete(query as CFDictionary)
-        }
+        Key.allCases.forEach { delete($0) }
+    }
+
+    func clearFitbit() {
+        delete(.accessToken)
+        delete(.refreshToken)
+        delete(.expiresAt)
+    }
+
+    func clearGoogle() {
+        delete(.googleAccessToken)
+        delete(.googleRefreshToken)
+        delete(.googleExpiresAt)
+    }
+
+    private func delete(_ key: Key) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key.rawValue
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 }

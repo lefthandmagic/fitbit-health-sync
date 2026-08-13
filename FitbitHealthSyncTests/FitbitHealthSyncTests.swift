@@ -86,4 +86,21 @@ final class FitbitHealthSyncTests: XCTestCase {
         let dateInvalid = SyncEngine.parseSleepDate("invalid-date-format")
         XCTAssertNil(dateInvalid)
     }
+
+    func testGoogleReversedClientID() {
+        XCTAssertEqual(
+            GoogleHealthConfig.reversedClientID(from: "123-abc.apps.googleusercontent.com"),
+            "com.googleusercontent.apps.123-abc"
+        )
+        XCTAssertTrue(GoogleHealthConfig.isConfigured)
+        XCTAssertEqual(
+            GoogleHealthConfig.reversedClientID,
+            "com.googleusercontent.apps.547556030049-csoh2cpvu82k3ub8b0gie0gk2k7mhhgc"
+        )
+    }
+
+    func testDateFormattersRoundTrip() {
+        let parsed = DateFormatters.parseDay("2026-08-13")
+        XCTAssertEqual(DateFormatters.dayString(parsed), "2026-08-13")
+    }
 }

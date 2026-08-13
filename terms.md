@@ -7,7 +7,7 @@ By using Fitbit Health Sync, you agree to these terms.
 ## Use of Service
 
 - You may use the app only for lawful purposes.
-- You are responsible for your Fitbit and Apple account access.
+- You are responsible for your Fitbit / Google and Apple account access.
 - You are responsible for verifying synced data before acting on it.
 
 ## No Medical Advice
@@ -24,7 +24,7 @@ To the maximum extent allowed by law, Fitbit Health Sync is provided "as is" wit
 
 ## Termination
 
-You may stop using the app at any time by uninstalling it and disconnecting Fitbit access.
+You may stop using the app at any time by uninstalling it and disconnecting Google Health (or Fitbit) access.
 
 ## Contact
 

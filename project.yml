@@ -15,14 +15,41 @@ targets:
       - FitbitHealthSync
     info:
       path: FitbitHealthSync/Resources/Info.plist
+      properties:
+        BGTaskSchedulerPermittedIdentifiers:
+          - $(PRODUCT_BUNDLE_IDENTIFIER).refresh
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.praveenmurugesan.fitbithealthsync
+            CFBundleURLSchemes:
+              - fitbithealthsync
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: google-health-oauth
+            CFBundleURLSchemes:
+              - com.googleusercontent.apps.547556030049-csoh2cpvu82k3ub8b0gie0gk2k7mhhgc
+        NSHealthShareUsageDescription: Reads health permissions and sync status.
+        NSHealthUpdateUsageDescription: Writes Fitbit / Google Health data into Apple Health.
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - fetch
+          - processing
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+    entitlements:
+      path: FitbitHealthSync/Resources/FitbitHealthSync.entitlements
+      properties:
+        com.apple.developer.healthkit: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.praveenmurugesan.FitbitHealthSync
         INFOPLIST_KEY_CFBundleDisplayName: "Fitbit Health Sync"
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
-    entitlements:
-      path: FitbitHealthSync/Resources/FitbitHealthSync.entitlements
     prebuildScripts: []
     dependencies: []
 

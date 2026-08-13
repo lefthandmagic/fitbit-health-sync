@@ -7,16 +7,22 @@ final class AppModel: ObservableObject {
     @Published var isSyncing = false
     @Published var lastSyncText = "Never"
     @Published var logs: [String] = []
+    @Published var authProvider: HealthAuthProvider?
+    @Published var needsGoogleReconnect = false
 
     let settingsStore: AppSettingsStore
     let stateStore: SyncStateStore
     let keychainStore: KeychainStore
 
     private(set) lazy var authManager = FitbitAuthManager(keychain: keychainStore)
+    private(set) lazy var googleAuth = GoogleAuthManager(keychain: keychainStore)
     private(set) lazy var fitbitClient = FitbitAPIClient(authManager: authManager, settingsStore: settingsStore)
+    private(set) lazy var googleClient = GoogleHealthAPIClient(authManager: googleAuth)
     private(set) lazy var healthKit = HealthKitManager()
-    private(set) lazy var syncEngine = SyncEngine(fitbit: fitbitClient, healthKit: healthKit, stateStore: stateStore)
     private(set) lazy var backgroundScheduler = BackgroundSyncScheduler(appModel: self, settingsStore: settingsStore)
+
+    /// Fitbit Web API is turned down September 2026.
+    static let fitbitSunset = Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: 1))!
 
     init(
         settingsStore: AppSettingsStore = AppSettingsStore(),
@@ -26,7 +32,42 @@ final class AppModel: ObservableObject {
         self.settingsStore = settingsStore
         self.stateStore = stateStore
         self.keychainStore = keychainStore
-        self.isConnected = authManager.tokenSet != nil
+        refreshAuthState()
+    }
+
+    var connectionTitle: String {
+        switch authProvider {
+        case .google: return "Connected to Google Health"
+        case .fitbit: return "Connected to Fitbit (legacy)"
+        case nil: return "Not Connected"
+        }
+    }
+
+    var connectionSubtitle: String {
+        switch authProvider {
+        case .google: return "Auto-sync Google Health data to Apple Health"
+        case .fitbit:
+            return GoogleHealthConfig.isConfigured
+                ? "Reconnect with Google before September 2026"
+                : "Auto-sync Fitbit data to Apple Health"
+        case nil: return "Tap below to connect your account"
+        }
+    }
+
+    func refreshAuthState() {
+        if googleAuth.tokenSet != nil {
+            authProvider = .google
+            isConnected = true
+            needsGoogleReconnect = false
+        } else if authManager.tokenSet != nil {
+            authProvider = .fitbit
+            isConnected = true
+            needsGoogleReconnect = GoogleHealthConfig.isConfigured
+        } else {
+            authProvider = nil
+            isConnected = false
+            needsGoogleReconnect = false
+        }
     }
 
     func connectFitbit() async {
@@ -36,7 +77,8 @@ final class AppModel: ObservableObject {
                 return
             }
             _ = try await authManager.authorize(clientID: settingsStore.fitbitClientID)
-            isConnected = true
+            keychainStore.set(HealthAuthProvider.fitbit.rawValue, for: .oauthProvider)
+            refreshAuthState()
             appendLog("Fitbit connected.")
             backgroundScheduler.scheduleNext()
         } catch {
@@ -44,10 +86,24 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func disconnectFitbit() {
+    func connectGoogle() async {
+        do {
+            _ = try await googleAuth.authorize()
+            authManager.clearTokens()
+            refreshAuthState()
+            appendLog("Google Health connected. Legacy Fitbit token cleared.")
+            backgroundScheduler.scheduleNext()
+        } catch {
+            appendLog("Google connect failed: \(error.localizedDescription)")
+        }
+    }
+
+    func disconnect() {
         authManager.clearTokens()
-        isConnected = false
-        appendLog("Disconnected Fitbit.")
+        googleAuth.clearTokens()
+        keychainStore.set("", for: .oauthProvider)
+        refreshAuthState()
+        appendLog("Disconnected.")
     }
 
     @discardableResult
@@ -57,7 +113,18 @@ final class AppModel: ObservableObject {
         defer { isSyncing = false }
         appendLog("Starting \(trigger) sync...")
         try await healthKit.requestAuthorization(for: settingsStore.enabledMetrics)
-        let result = try await syncEngine.run(metrics: settingsStore.enabledMetrics)
+        let client: HealthDataClient
+        let prefix: String
+        switch authProvider {
+        case .google:
+            client = googleClient
+            prefix = "google"
+        case .fitbit, nil:
+            client = fitbitClient
+            prefix = "fitbit"
+        }
+        let engine = SyncEngine(client: client, healthKit: healthKit, stateStore: stateStore, idPrefix: prefix)
+        let result = try await engine.run(metrics: settingsStore.enabledMetrics)
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short

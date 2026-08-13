@@ -65,11 +65,11 @@ private struct HomeView: View {
         }
         .navigationViewStyle(.stack)
         .confirmationDialog(
-            "Disconnect Fitbit?",
+            "Disconnect?",
             isPresented: $showDisconnectConfirm,
             titleVisibility: .visible
         ) {
-            Button("Disconnect", role: .destructive) { model.disconnectFitbit() }
+            Button("Disconnect", role: .destructive) { model.disconnect() }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("You will need to reconnect to sync data.")
@@ -89,9 +89,9 @@ private struct HomeView: View {
                     .foregroundStyle(model.isConnected ? .green : .orange)
             }
             VStack(alignment: .leading, spacing: 3) {
-                Text(model.isConnected ? "Connected to Fitbit" : "Not Connected")
+                Text(model.connectionTitle)
                     .font(.headline)
-                Text(model.isConnected ? "Auto-sync Fitbit data to Apple Health" : "Tap below to connect your account")
+                Text(model.connectionSubtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -140,17 +140,53 @@ private struct HomeView: View {
 
     private var syncButton: some View {
         VStack(spacing: 12) {
-            if !model.isConnected {
-                Button {
-                    Task { await model.connectFitbit() }
-                } label: {
-                    Label("Connect Fitbit Account", systemImage: "person.crop.circle.badge.plus")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: 52)
+            if model.needsGoogleReconnect {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Fitbit Health Sync collects health and fitness data (weight, body fat, steps, sleep, resting heart rate, and active energy) to write it into Apple Health on this device. Data stays on your phone.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Button {
+                        Task { await model.connectGoogle() }
+                    } label: {
+                        Label("Reconnect with Google", systemImage: "arrow.triangle.2.circlepath")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 52)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+                    .cornerRadius(14)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.indigo)
-                .cornerRadius(14)
+            }
+
+            if !model.isConnected {
+                if GoogleHealthConfig.isConfigured {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Fitbit Health Sync collects health and fitness data (weight, body fat, steps, sleep, resting heart rate, and active energy) to write it into Apple Health on this device. Data stays on your phone.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button {
+                            Task { await model.connectGoogle() }
+                        } label: {
+                            Label("Connect Google Health", systemImage: "person.crop.circle.badge.plus")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, minHeight: 52)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.indigo)
+                        .cornerRadius(14)
+                    }
+                } else {
+                    Button {
+                        Task { await model.connectFitbit() }
+                    } label: {
+                        Label("Connect Fitbit Account", systemImage: "person.crop.circle.badge.plus")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 52)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.indigo)
+                    .cornerRadius(14)
+                }
             }
 
             Button {

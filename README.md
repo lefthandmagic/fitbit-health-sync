@@ -1,14 +1,17 @@
 # Fitbit Health Sync
 
-Minimal iPhone app to sync Fitbit data into Apple Health.
+Minimal iPhone app to sync Fitbit / Google Health data into Apple Health.
+
+**Continuity:** Google turns down the legacy Fitbit Web API in **September 2026**. This app now has a dual stack: existing Fitbit OAuth still works, then users reconnect with Google OAuth and the [Google Health API](https://developers.google.com/health). Tokens do **not** transfer — every user must re-consent.
 
 ## What this version includes
 
-- Fitbit OAuth 2.0 (Authorization Code + PKCE)
+- Fitbit OAuth 2.0 (Authorization Code + PKCE) — legacy, until Sept 2026
+- Google OAuth 2.0 + Google Health API (`health.googleapis.com/v4`) — new path
 - Keychain token persistence + refresh flow
 - HealthKit write pipeline with de-dup metadata
 - Manual sync and best-effort background sync scheduling
-- Metrics implemented in sync engine:
+- Metrics:
   - Body weight
   - Body fat percentage
   - Steps
@@ -16,21 +19,31 @@ Minimal iPhone app to sync Fitbit data into Apple Health.
   - Active energy
   - Sleep
 
-## 1) Create a Fitbit app
+## 1) Google Health API (required before September 2026)
 
-In Fitbit developer settings:
+1. Create / open a Google Cloud project: https://console.cloud.google.com
+2. Enable **Google Health API**.
+3. Configure the OAuth consent screen. Scopes (read-only, restricted):
+   - `https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly`
+   - `https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly`
+   - `https://www.googleapis.com/auth/googlehealth.sleep.readonly`
+4. Create an **iOS** OAuth client ID. Bundle ID: `com.praveenmurugesan.FitbitHealthSync`
+5. Paste the client ID into `FitbitHealthSync/Services/GoogleHealth/GoogleHealthConfig.swift` (`clientID`).
+6. Add a URL scheme in `Info.plist` equal to the **reversed** client ID  
+   (`123-abc.apps.googleusercontent.com` → `com.googleusercontent.apps.123-abc`).
+7. Host the updated `privacy.md` at the public URL already used for App Store review.
+8. Unverified apps are capped at **100 users**. Submit OAuth verification if you need more. Google Health scopes are Restricted.
 
-- Create an app of type `Personal` + `Client`
+Until step 5 is done, the app keeps using the existing Fitbit client ID `239Z9K`.
+
+## 2) Legacy Fitbit app (still used until reconnect)
+
+In Fitbit developer settings (no new apps after deprecation):
+
 - Redirect URI: `fitbithealthsync://oauth-callback`
-- Scopes:
-  - `weight`
-  - `heartrate`
-  - `activity`
-  - `sleep`
+- Scopes: `weight` `heartrate` `activity` `sleep`
 
-Copy the Fitbit Client ID.
-
-## 2) Generate Xcode project
+## 3) Generate Xcode project
 
 This repo uses `xcodegen`.
 
@@ -40,28 +53,28 @@ xcodegen generate
 open FitbitHealthSync.xcodeproj
 ```
 
-## 3) Xcode signing and capabilities
+## 4) Xcode signing and capabilities
 
 - Set your Apple Team in Signing.
 - Ensure capabilities include:
   - HealthKit
   - Background Modes (Background fetch + Background processing)
 
-## 4) Run on physical iPhone
+## 5) Run on physical iPhone
 
 The Health app + background scheduling behavior should be tested on a real iPhone.
 
 Open app -> Settings tab:
 
-- Enter Fitbit Client ID
 - Choose sync interval
 - Select metrics
 
-Then Connect tab:
+Then Home tab:
 
-- Connect Fitbit account
+- Connect Google Health (or Fitbit until the client ID is configured)
+- Existing Fitbit users see **Reconnect with Google** once the Google client ID is set
 
-Then Sync tab:
+Then:
 
 - Tap `Sync Now`
 - Verify data appears in Apple Health.
@@ -69,7 +82,7 @@ Then Sync tab:
 ## Notes
 
 - iOS background tasks are best effort. The app schedules periodic refresh, but exact execution time is not guaranteed by iOS.
-- If OAuth fails, verify redirect URI and client app settings in Fitbit developer console.
+- If OAuth fails, verify the Google iOS client ID, reversed URL scheme, and (legacy) Fitbit redirect URI.
 
 ## App Store screenshots (no manual re-upload)
 

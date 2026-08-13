@@ -3,7 +3,7 @@ import CommonCrypto
 import Foundation
 import UIKit
 
-final class FitbitAuthManager: NSObject, ASWebAuthenticationPresentationContextProviding {
+final class GoogleAuthManager: NSObject, ASWebAuthenticationPresentationContextProviding {
     struct TokenSet: Codable {
         let accessToken: String
         let refreshToken: String
@@ -11,9 +11,6 @@ final class FitbitAuthManager: NSObject, ASWebAuthenticationPresentationContextP
     }
 
     private let keychain: KeychainStore
-    private let redirectScheme = "fitbithealthsync"
-    private let callbackPath = "oauth-callback"
-
     private var authSession: ASWebAuthenticationSession?
     private var verifier = ""
 
@@ -28,9 +25,9 @@ final class FitbitAuthManager: NSObject, ASWebAuthenticationPresentationContextP
     }
 
     var tokenSet: TokenSet? {
-        guard let access = keychain.get(.accessToken),
-              let refresh = keychain.get(.refreshToken),
-              let expiresText = keychain.get(.expiresAt),
+        guard let access = keychain.get(.googleAccessToken),
+              let refresh = keychain.get(.googleRefreshToken),
+              let expiresText = keychain.get(.googleExpiresAt),
               let expiresAt = ISO8601DateFormatter().date(from: expiresText) else {
             return nil
         }
@@ -38,45 +35,58 @@ final class FitbitAuthManager: NSObject, ASWebAuthenticationPresentationContextP
     }
 
     func clearTokens() {
-        keychain.clearFitbit()
+        keychain.clearGoogle()
     }
 
-    func authorize(clientID: String) async throws -> TokenSet {
+    func authorize() async throws -> TokenSet {
+        guard GoogleHealthConfig.isConfigured else {
+            throw NSError(
+                domain: "GoogleAuth",
+                code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "Google Health API client ID is not configured yet."]
+            )
+        }
         let codeVerifier = Self.randomString(length: 64)
         let challenge = Self.base64URLEncode(Self.sha256(data: Data(codeVerifier.utf8)))
         verifier = codeVerifier
 
-        var components = URLComponents(string: "https://www.fitbit.com/oauth2/authorize")!
+        var components = URLComponents(string: GoogleHealthConfig.authorizeURL)!
         components.queryItems = [
             URLQueryItem(name: "response_type", value: "code"),
-            URLQueryItem(name: "client_id", value: clientID),
-            URLQueryItem(name: "redirect_uri", value: "\(redirectScheme)://\(callbackPath)"),
-            URLQueryItem(name: "scope", value: "weight heartrate activity sleep"),
+            URLQueryItem(name: "client_id", value: GoogleHealthConfig.clientID),
+            URLQueryItem(name: "redirect_uri", value: GoogleHealthConfig.redirectURI),
+            URLQueryItem(name: "scope", value: GoogleHealthConfig.scopes),
             URLQueryItem(name: "code_challenge", value: challenge),
-            URLQueryItem(name: "code_challenge_method", value: "S256")
+            URLQueryItem(name: "code_challenge_method", value: "S256"),
+            URLQueryItem(name: "access_type", value: "offline"),
+            URLQueryItem(name: "prompt", value: "consent")
         ]
 
         let code = try await runWebAuth(url: components.url!)
-        let token = try await exchangeCodeForToken(code: code, clientID: clientID)
+        let token = try await exchangeCodeForToken(code: code)
         persist(token: token)
+        keychain.set(HealthAuthProvider.google.rawValue, for: .oauthProvider)
         return token
     }
 
-    func validAccessToken(clientID: String) async throws -> String {
+    func validAccessToken() async throws -> String {
         guard let tokenSet else {
-            throw NSError(domain: "FitbitAuth", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to Fitbit"])
+            throw NSError(domain: "GoogleAuth", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to Google Health"])
         }
         if tokenSet.expiresAt > Date().addingTimeInterval(60) {
             return tokenSet.accessToken
         }
-        let refreshed = try await refresh(refreshToken: tokenSet.refreshToken, clientID: clientID)
+        let refreshed = try await refresh(refreshToken: tokenSet.refreshToken)
         persist(token: refreshed)
         return refreshed.accessToken
     }
 
     private func runWebAuth(url: URL) async throws -> String {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
-            authSession = ASWebAuthenticationSession(url: url, callbackURLScheme: redirectScheme) { callbackURL, error in
+            authSession = ASWebAuthenticationSession(
+                url: url,
+                callbackURLScheme: GoogleHealthConfig.callbackScheme
+            ) { callbackURL, error in
                 if let error {
                     continuation.resume(throwing: error)
                     return
@@ -84,7 +94,7 @@ final class FitbitAuthManager: NSObject, ASWebAuthenticationPresentationContextP
                 guard let callbackURL,
                       let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
                       let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
-                    continuation.resume(throwing: NSError(domain: "FitbitAuth", code: 2, userInfo: [NSLocalizedDescriptionKey: "Missing OAuth code"]))
+                    continuation.resume(throwing: NSError(domain: "GoogleAuth", code: 2, userInfo: [NSLocalizedDescriptionKey: "Missing OAuth code"]))
                     return
                 }
                 continuation.resume(returning: code)
@@ -92,33 +102,33 @@ final class FitbitAuthManager: NSObject, ASWebAuthenticationPresentationContextP
             authSession?.prefersEphemeralWebBrowserSession = false
             authSession?.presentationContextProvider = self
             if authSession?.start() == false {
-                continuation.resume(throwing: NSError(domain: "FitbitAuth", code: 3, userInfo: [NSLocalizedDescriptionKey: "Unable to start login"]))
+                continuation.resume(throwing: NSError(domain: "GoogleAuth", code: 3, userInfo: [NSLocalizedDescriptionKey: "Unable to start login"]))
             }
         }
     }
 
-    private func exchangeCodeForToken(code: String, clientID: String) async throws -> TokenSet {
+    private func exchangeCodeForToken(code: String) async throws -> TokenSet {
         let body = [
-            "client_id": clientID,
+            "client_id": GoogleHealthConfig.clientID,
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": "\(redirectScheme)://\(callbackPath)",
+            "redirect_uri": GoogleHealthConfig.redirectURI,
             "code_verifier": verifier
         ]
         return try await performTokenRequest(body: body)
     }
 
-    private func refresh(refreshToken: String, clientID: String) async throws -> TokenSet {
+    private func refresh(refreshToken: String) async throws -> TokenSet {
         let body = [
-            "client_id": clientID,
+            "client_id": GoogleHealthConfig.clientID,
             "grant_type": "refresh_token",
             "refresh_token": refreshToken
         ]
-        return try await performTokenRequest(body: body)
+        return try await performTokenRequest(body: body, fallbackRefresh: refreshToken)
     }
 
-    private func performTokenRequest(body: [String: String]) async throws -> TokenSet {
-        var request = URLRequest(url: URL(string: "https://api.fitbit.com/oauth2/token")!)
+    private func performTokenRequest(body: [String: String], fallbackRefresh: String? = nil) async throws -> TokenSet {
+        var request = URLRequest(url: URL(string: GoogleHealthConfig.tokenURL)!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.httpBody = body
@@ -128,26 +138,30 @@ final class FitbitAuthManager: NSObject, ASWebAuthenticationPresentationContextP
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw NSError(domain: "FitbitAuth", code: 4, userInfo: [NSLocalizedDescriptionKey: "Token request failed"])
+            throw NSError(domain: "GoogleAuth", code: 4, userInfo: [NSLocalizedDescriptionKey: "Google token request failed"])
         }
         struct TokenResponse: Decodable {
             let access_token: String
-            let refresh_token: String
+            let refresh_token: String?
             let expires_in: Int
         }
         let decoded = try JSONDecoder().decode(TokenResponse.self, from: data)
+        let refresh = decoded.refresh_token ?? fallbackRefresh ?? ""
+        guard !refresh.isEmpty else {
+            throw NSError(domain: "GoogleAuth", code: 5, userInfo: [NSLocalizedDescriptionKey: "Google refresh token missing"])
+        }
         return TokenSet(
             accessToken: decoded.access_token,
-            refreshToken: decoded.refresh_token,
+            refreshToken: refresh,
             expiresAt: Date().addingTimeInterval(TimeInterval(decoded.expires_in))
         )
     }
 
     private func persist(token: TokenSet) {
         let formatter = ISO8601DateFormatter()
-        keychain.set(token.accessToken, for: .accessToken)
-        keychain.set(token.refreshToken, for: .refreshToken)
-        keychain.set(formatter.string(from: token.expiresAt), for: .expiresAt)
+        keychain.set(token.accessToken, for: .googleAccessToken)
+        keychain.set(token.refreshToken, for: .googleRefreshToken)
+        keychain.set(formatter.string(from: token.expiresAt), for: .googleExpiresAt)
     }
 
     private static func randomString(length: Int) -> String {

@@ -1,6 +1,6 @@
 import Foundation
 
-final class FitbitAPIClient {
+final class FitbitAPIClient: HealthDataClient {
     private let authManager: FitbitAuthManager
     private let settingsStore: AppSettingsStore
     private let decoder = JSONDecoder()
@@ -10,35 +10,49 @@ final class FitbitAPIClient {
         self.settingsStore = settingsStore
     }
 
-    func fetchWeightLogs(start: Date, end: Date) async throws -> [FitbitWeightLog] {
-        struct Response: Decodable { let weight: [FitbitWeightLog] }
-        let path = "/1/user/-/body/log/weight/date/\(date(start))/\(date(end)).json"
-        let response: Response = try await request(path: path)
-        return response.weight
+    func fetchWeightLogs(start: Date, end: Date) async throws -> [WeightLog] {
+        try await rawWeightLogs(start: start, end: end).map { item in
+            WeightLog(
+                id: "\(item.logId)",
+                date: Self.parseDateTime(date: item.date, time: item.time),
+                kilograms: item.weight,
+                fatPercent: item.fat
+            )
+        }
     }
 
-    func fetchDailySteps(start: Date, end: Date) async throws -> [FitbitDailyValue] {
+    func fetchBodyFatLogs(start: Date, end: Date) async throws -> [WeightLog] {
+        try await fetchWeightLogs(start: start, end: end).filter { $0.fatPercent != nil }
+    }
+
+    func fetchDailySteps(start: Date, end: Date) async throws -> [DailyMetric] {
         struct Response: Decodable {
             let values: [FitbitDailyValue]
             enum CodingKeys: String, CodingKey { case values = "activities-steps" }
         }
-        let path = "/1/user/-/activities/steps/date/\(date(start))/\(date(end)).json"
+        let path = "/1/user/-/activities/steps/date/\(DateFormatters.dayString(start))/\(DateFormatters.dayString(end)).json"
         let response: Response = try await request(path: path)
-        return response.values
+        return response.values.compactMap { item in
+            guard let value = Double(item.value) else { return nil }
+            return DailyMetric(dayStart: DateFormatters.parseDay(item.dateTime), value: value)
+        }
     }
 
-    func fetchDailyCalories(start: Date, end: Date) async throws -> [FitbitDailyValue] {
+    func fetchDailyActiveEnergy(start: Date, end: Date) async throws -> [DailyMetric] {
         struct Response: Decodable {
             let values: [FitbitDailyValue]
             enum CodingKeys: String, CodingKey { case values = "activities-calories" }
         }
-        let path = "/1/user/-/activities/calories/date/\(date(start))/\(date(end)).json"
+        let path = "/1/user/-/activities/calories/date/\(DateFormatters.dayString(start))/\(DateFormatters.dayString(end)).json"
         let response: Response = try await request(path: path)
-        return response.values
+        return response.values.compactMap { item in
+            guard let value = Double(item.value) else { return nil }
+            return DailyMetric(dayStart: DateFormatters.parseDay(item.dateTime), value: value)
+        }
     }
 
-    func fetchDailyRestingHeartRate(start: Date, end: Date) async throws -> [FitbitDailyValue] {
-        var out: [FitbitDailyValue] = []
+    func fetchDailyRestingHeartRate(start: Date, end: Date) async throws -> [DailyMetric] {
+        var out: [DailyMetric] = []
         let cal = Calendar.current
         var day = cal.startOfDay(for: start)
         let last = cal.startOfDay(for: end)
@@ -55,11 +69,11 @@ final class FitbitAPIClient {
                 }
                 enum CodingKeys: String, CodingKey { case activitiesHeart = "activities-heart" }
             }
-            let path = "/1/user/-/activities/heart/date/\(date(day))/1d.json"
+            let path = "/1/user/-/activities/heart/date/\(DateFormatters.dayString(day))/1d.json"
             let response: DayResponse = try await request(path: path)
             if let item = response.activitiesHeart.first,
                let rhr = item.value.restingHeartRate {
-                out.append(FitbitDailyValue(dateTime: item.dateTime, value: "\(rhr)"))
+                out.append(DailyMetric(dayStart: DateFormatters.parseDay(item.dateTime), value: Double(rhr)))
             }
             guard let next = cal.date(byAdding: .day, value: 1, to: day) else { break }
             day = next
@@ -67,11 +81,28 @@ final class FitbitAPIClient {
         return out
     }
 
-    func fetchSleepLogs(start: Date, end: Date) async throws -> [FitbitSleepLog] {
+    func fetchSleepLogs(start: Date, end: Date) async throws -> [SleepLog] {
         struct Response: Decodable { let sleep: [FitbitSleepLog] }
-        let path = "/1.2/user/-/sleep/date/\(date(start))/\(date(end)).json"
+        let path = "/1.2/user/-/sleep/date/\(DateFormatters.dayString(start))/\(DateFormatters.dayString(end)).json"
         let response: Response = try await request(path: path)
-        return response.sleep
+        return response.sleep.compactMap { item in
+            guard let startText = item.startTime,
+                  let endText = item.endTime,
+                  let sleepStart = SyncEngine.parseSleepDate(startText),
+                  let sleepEnd = SyncEngine.parseSleepDate(endText) else { return nil }
+            return SleepLog(
+                id: "\(item.logId ?? Int64.random(in: 0...9_999_999))",
+                start: sleepStart,
+                end: sleepEnd
+            )
+        }
+    }
+
+    private func rawWeightLogs(start: Date, end: Date) async throws -> [FitbitWeightLog] {
+        struct Response: Decodable { let weight: [FitbitWeightLog] }
+        let path = "/1/user/-/body/log/weight/date/\(DateFormatters.dayString(start))/\(DateFormatters.dayString(end)).json"
+        let response: Response = try await request(path: path)
+        return response.weight
     }
 
     private func request<T: Decodable>(path: String) async throws -> T {
@@ -88,14 +119,12 @@ final class FitbitAPIClient {
         return try decoder.decode(T.self, from: data)
     }
 
-    private func date(_ date: Date) -> String {
+    private static func parseDateTime(date: String, time: String) -> Date {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        // Fitbit day-based endpoints are interpreted in the user's local Fitbit day,
-        // so using device-local timezone avoids "today" being shifted to yesterday in UTC.
         formatter.timeZone = TimeZone.current
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter.date(from: "\(date) \(time)") ?? DateFormatters.parseDay(date)
     }
 }

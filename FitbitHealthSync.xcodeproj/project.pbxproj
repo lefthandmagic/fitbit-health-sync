@@ -3,19 +3,23 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0A8A2545224D8BBFB34D8A31 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6FBC6473076A6D1B53E5B5B5 /* LaunchScreen.storyboard */; };
-		3F0F88D56DFA4D10AFA08534 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */; };
+		075D4B8933C0E18AE0CCB625 /* GoogleAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E689C35EAD721C9F10C79327 /* GoogleAuthManager.swift */; };
+		0FC341BE29FFA790C9E5E793 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1CD9A10B86F18AA2A5EAB55 /* Assets.xcassets */; };
+		4DAA6368BD712052CE4E7012 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28FF06B12324150E81BC7B41 /* LaunchScreen.storyboard */; };
 		7C2AA5EEAFAF468E61AAA498 /* FitbitHealthSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F575DAAB42B9B2DDFD37750 /* FitbitHealthSyncTests.swift */; };
 		82F04D3BF01AB6051F5456EF /* AppStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1772298E303F8E5B9C8F451F /* AppStores.swift */; };
 		85F8628C5B1EEC74AFD0EACA /* BackgroundSyncScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCA799895DE819A21AD85090 /* BackgroundSyncScheduler.swift */; };
+		8B0E2E9F718F5F315D10F2AE /* GoogleHealthAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE601A34F7D0749DBFFFB6F0 /* GoogleHealthAPIClient.swift */; };
 		A05A547F2424888AB7D2D2C8 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F218DA3CB7849461F17BF16 /* RootView.swift */; };
+		A16BF88659A5175A3B03A676 /* GoogleHealthConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8228800DC2DEB559C6ADB8A5 /* GoogleHealthConfig.swift */; };
 		A26B97AB6240088AA0D1B917 /* FitbitAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71F30EF932CA3DCFE1EBA75B /* FitbitAPIClient.swift */; };
 		A34594FEC1992E9151583C5B /* FitbitAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A2764D88A2E2FF84A8BE10 /* FitbitAuthManager.swift */; };
 		AEC1819B578538C3E6EC3EB2 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2BC3D21ED5D71517BF907A /* Models.swift */; };
+		C089DE661B4E92431EBC445A /* HealthDataClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26E08A9ED3C9FC35D61BDF0 /* HealthDataClient.swift */; };
 		C92A230439101E72D96DFE76 /* FitbitHealthSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24DFA2FEDE0E73EC811E64C8 /* FitbitHealthSyncApp.swift */; };
 		D6988F5CA18B884623F73C30 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F719B92B58E2AEEA3FF197 /* HealthKitManager.swift */; };
 		D8B30A00B882ACFF295EFDB6 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D7BB8AB38EC936C1A3F63ED /* SyncEngine.swift */; };
@@ -37,24 +41,38 @@
 		0C2BC3D21ED5D71517BF907A /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		1772298E303F8E5B9C8F451F /* AppStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStores.swift; sourceTree = "<group>"; };
 		18F719B92B58E2AEEA3FF197 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
-		1B870FA98776C73DF1D2E55C /* FitbitHealthSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FitbitHealthSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B870FA98776C73DF1D2E55C /* FitbitHealthSyncTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FitbitHealthSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D7BB8AB38EC936C1A3F63ED /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
 		1DCC16E02AF57D1EFCCECBEB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		20A2764D88A2E2FF84A8BE10 /* FitbitAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitAuthManager.swift; sourceTree = "<group>"; };
 		24DFA2FEDE0E73EC811E64C8 /* FitbitHealthSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitHealthSyncApp.swift; sourceTree = "<group>"; };
+		28FF06B12324150E81BC7B41 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2F218DA3CB7849461F17BF16 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		3C4FF67E4B983CBAF9179177 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4F575DAAB42B9B2DDFD37750 /* FitbitHealthSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitHealthSyncTests.swift; sourceTree = "<group>"; };
 		68F256019AC40AD834959E41 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
-		6FBC6473076A6D1B53E5B5B5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		71F30EF932CA3DCFE1EBA75B /* FitbitAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitbitAPIClient.swift; sourceTree = "<group>"; };
-		AD6F7CBCD1BC4091E0D1754B /* FitbitHealthSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FitbitHealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8228800DC2DEB559C6ADB8A5 /* GoogleHealthConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleHealthConfig.swift; sourceTree = "<group>"; };
+		A26E08A9ED3C9FC35D61BDF0 /* HealthDataClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthDataClient.swift; sourceTree = "<group>"; };
+		AD6F7CBCD1BC4091E0D1754B /* FitbitHealthSync.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FitbitHealthSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1CD9A10B86F18AA2A5EAB55 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BCA799895DE819A21AD85090 /* BackgroundSyncScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundSyncScheduler.swift; sourceTree = "<group>"; };
-		D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BE601A34F7D0749DBFFFB6F0 /* GoogleHealthAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleHealthAPIClient.swift; sourceTree = "<group>"; };
+		E689C35EAD721C9F10C79327 /* GoogleAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuthManager.swift; sourceTree = "<group>"; };
 		F32691BD01E237C3399C185D /* FitbitHealthSync.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FitbitHealthSync.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		0F9C604356E27C080745DB8F /* GoogleHealth */ = {
+			isa = PBXGroup;
+			children = (
+				E689C35EAD721C9F10C79327 /* GoogleAuthManager.swift */,
+				BE601A34F7D0749DBFFFB6F0 /* GoogleHealthAPIClient.swift */,
+				8228800DC2DEB559C6ADB8A5 /* GoogleHealthConfig.swift */,
+			);
+			path = GoogleHealth;
+			sourceTree = "<group>";
+		};
 		1D7D5F368BEC6126BD113A9F = {
 			isa = PBXGroup;
 			children = (
@@ -68,8 +86,8 @@
 			isa = PBXGroup;
 			children = (
 				F32691BD01E237C3399C185D /* FitbitHealthSync.entitlements */,
-				6FBC6473076A6D1B53E5B5B5 /* LaunchScreen.storyboard */,
 				3C4FF67E4B983CBAF9179177 /* Info.plist */,
+				28FF06B12324150E81BC7B41 /* LaunchScreen.storyboard */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -94,8 +112,8 @@
 		511620A3F8DAFED5A3F52E3C /* FitbitHealthSync */ = {
 			isa = PBXGroup;
 			children = (
+				B1CD9A10B86F18AA2A5EAB55 /* Assets.xcassets */,
 				9DA91158C1C26C8079E8A8F2 /* App */,
-				D9C0E5D9D1424D4A8D170C25 /* Assets.xcassets */,
 				49A2ED5A38BFACBDAB64D37A /* Models */,
 				B60995867A823D543D2059AB /* Persistence */,
 				359E2C522147AC3A3F2BBE99 /* Resources */,
@@ -144,7 +162,9 @@
 		EE794C8D27E24E67F18A2B73 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A26E08A9ED3C9FC35D61BDF0 /* HealthDataClient.swift */,
 				69B1317AA46D614B3EB2C3E5 /* Fitbit */,
+				0F9C604356E27C080745DB8F /* GoogleHealth */,
 				CD5FB927F84F380BC6396046 /* HealthKit */,
 			);
 			path = Services;
@@ -192,8 +212,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DBC49A0EA6E8BC64717E8197 /* Build configuration list for PBXNativeTarget "FitbitHealthSync" */;
 			buildPhases = (
-				8E8A981D24AD5ECFCED4697A /* Resources */,
 				2776406249DB986973E2A92C /* Sources */,
+				98B50971AB349E29E03EC287 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -213,15 +233,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					945DAF418B974FAD232306AE = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
 			buildConfigurationList = 914A7C7D48F0BC1700026FEE /* Build configuration list for PBXProject "FitbitHealthSync" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -230,6 +250,8 @@
 			);
 			mainGroup = 1D7D5F368BEC6126BD113A9F;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F4DBE9B4B4169D32E5EBC2A5 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -240,12 +262,12 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		8E8A981D24AD5ECFCED4697A /* Resources */ = {
+		98B50971AB349E29E03EC287 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3F0F88D56DFA4D10AFA08534 /* Assets.xcassets in Resources */,
-				0A8A2545224D8BBFB34D8A31 /* LaunchScreen.storyboard in Resources */,
+				0FC341BE29FFA790C9E5E793 /* Assets.xcassets in Resources */,
+				4DAA6368BD712052CE4E7012 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,6 +284,10 @@
 				A26B97AB6240088AA0D1B917 /* FitbitAPIClient.swift in Sources */,
 				A34594FEC1992E9151583C5B /* FitbitAuthManager.swift in Sources */,
 				C92A230439101E72D96DFE76 /* FitbitHealthSyncApp.swift in Sources */,
+				075D4B8933C0E18AE0CCB625 /* GoogleAuthManager.swift in Sources */,
+				8B0E2E9F718F5F315D10F2AE /* GoogleHealthAPIClient.swift in Sources */,
+				A16BF88659A5175A3B03A676 /* GoogleHealthConfig.swift in Sources */,
+				C089DE661B4E92431EBC445A /* HealthDataClient.swift in Sources */,
 				D6988F5CA18B884623F73C30 /* HealthKitManager.swift in Sources */,
 				F6C63100DD2D114AD3A4471F /* KeychainStore.swift in Sources */,
 				AEC1819B578538C3E6EC3EB2 /* Models.swift in Sources */,
@@ -293,7 +319,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -327,7 +352,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -351,7 +375,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -385,7 +408,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -419,23 +441,17 @@
 				CODE_SIGN_ENTITLEMENTS = FitbitHealthSync/Resources/FitbitHealthSync.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = DNQVHANQBU;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = FitbitHealthSync/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fitbit Health Sync";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads Apple Health permissions and sync status.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes Fitbit data into Apple Health.";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSync;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -446,23 +462,17 @@
 				CODE_SIGN_ENTITLEMENTS = FitbitHealthSync/Resources/FitbitHealthSync.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = DNQVHANQBU;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = FitbitHealthSync/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fitbit Health Sync";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "This app reads Apple Health permissions and sync status.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "This app writes Fitbit data into Apple Health.";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.praveenmurugesan.FitbitHealthSync;
 				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

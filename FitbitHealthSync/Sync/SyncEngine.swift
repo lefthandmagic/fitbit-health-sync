@@ -1,14 +1,16 @@
 import Foundation
 
 final class SyncEngine {
-    private let fitbit: FitbitAPIClient
+    private let client: HealthDataClient
     private let healthKit: HealthKitManager
     private let stateStore: SyncStateStore
+    private let idPrefix: String
 
-    init(fitbit: FitbitAPIClient, healthKit: HealthKitManager, stateStore: SyncStateStore) {
-        self.fitbit = fitbit
+    init(client: HealthDataClient, healthKit: HealthKitManager, stateStore: SyncStateStore, idPrefix: String) {
+        self.client = client
         self.healthKit = healthKit
         self.stateStore = stateStore
+        self.idPrefix = idPrefix
     }
 
     func run(metrics: Set<SyncMetric>) async throws -> SyncRunResult {
@@ -35,13 +37,15 @@ final class SyncEngine {
         let now = Date()
         let defaultStart = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? now
         let rawStart = stateStore.lastSyncDate(for: metric) ?? defaultStart
-        // Re-query one day back to tolerate Fitbit ingestion delays around day boundaries.
+        // Re-query one day back to tolerate ingestion delays around day boundaries.
         let start = Calendar.current.date(byAdding: .day, value: -1, to: rawStart) ?? rawStart
         let end = now
 
         switch metric {
-        case .bodyWeight, .bodyFat:
-            return try await syncWeight(start: start, end: end, includeFat: metric == .bodyFat)
+        case .bodyWeight:
+            return try await syncWeight(start: start, end: end)
+        case .bodyFat:
+            return try await syncBodyFat(start: start, end: end)
         case .steps:
             return try await syncSteps(start: start, end: end)
         case .restingHeartRate:
@@ -53,39 +57,44 @@ final class SyncEngine {
         }
     }
 
-    private func syncWeight(start: Date, end: Date, includeFat: Bool) async throws -> Int {
-        let logs = try await fitbit.fetchWeightLogs(start: start, end: end)
+    private func syncWeight(start: Date, end: Date) async throws -> Int {
+        let logs = try await client.fetchWeightLogs(start: start, end: end)
         var written = 0
         for item in logs {
-            let date = parseDateTime(date: item.date, time: item.time)
-            let weightSyncID = "fitbit-weight-\(item.logId)"
-            if !stateStore.hasSeen(identifier: weightSyncID, metric: .bodyWeight) {
-                try await healthKit.saveBodyWeight(kg: item.weight, date: date, syncID: weightSyncID)
-                stateStore.markSeen(identifier: weightSyncID, metric: .bodyWeight)
+            let syncID = "\(idPrefix)-weight-\(item.id)"
+            if !stateStore.hasSeen(identifier: syncID, metric: .bodyWeight) {
+                try await healthKit.saveBodyWeight(kg: item.kilograms, date: item.date, syncID: syncID)
+                stateStore.markSeen(identifier: syncID, metric: .bodyWeight)
                 written += 1
             }
-            if includeFat, let fat = item.fat {
-                let fatSyncID = "fitbit-fat-\(item.logId)"
-                if !stateStore.hasSeen(identifier: fatSyncID, metric: .bodyFat) {
-                    try await healthKit.saveBodyFat(percentage: fat, date: date, syncID: fatSyncID)
-                    stateStore.markSeen(identifier: fatSyncID, metric: .bodyFat)
-                    written += 1
-                }
+        }
+        return written
+    }
+
+    private func syncBodyFat(start: Date, end: Date) async throws -> Int {
+        let logs = try await client.fetchBodyFatLogs(start: start, end: end)
+        var written = 0
+        for item in logs {
+            guard let fat = item.fatPercent else { continue }
+            let syncID = "\(idPrefix)-fat-\(item.id)"
+            if !stateStore.hasSeen(identifier: syncID, metric: .bodyFat) {
+                try await healthKit.saveBodyFat(percentage: fat, date: item.date, syncID: syncID)
+                stateStore.markSeen(identifier: syncID, metric: .bodyFat)
+                written += 1
             }
         }
         return written
     }
 
     private func syncSteps(start: Date, end: Date) async throws -> Int {
-        let daily = try await fitbit.fetchDailySteps(start: start, end: end)
+        let daily = try await client.fetchDailySteps(start: start, end: end)
         var written = 0
         for item in daily {
-            guard let count = Double(item.value) else { continue }
-            let dayStart = parseDate(item.dateTime)
-            guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart) else { continue }
-            let syncID = "fitbit-steps-\(item.dateTime)"
+            guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: item.dayStart) else { continue }
+            let day = DateFormatters.dayString(item.dayStart)
+            let syncID = "\(idPrefix)-steps-\(day)"
             if !stateStore.hasSeen(identifier: syncID, metric: .steps) {
-                try await healthKit.saveSteps(count, start: dayStart, end: dayEnd, syncID: syncID)
+                try await healthKit.saveSteps(item.value, start: item.dayStart, end: dayEnd, syncID: syncID)
                 stateStore.markSeen(identifier: syncID, metric: .steps)
                 written += 1
             }
@@ -94,14 +103,13 @@ final class SyncEngine {
     }
 
     private func syncRestingHeartRate(start: Date, end: Date) async throws -> Int {
-        let daily = try await fitbit.fetchDailyRestingHeartRate(start: start, end: end)
+        let daily = try await client.fetchDailyRestingHeartRate(start: start, end: end)
         var written = 0
         for item in daily {
-            guard let bpm = Double(item.value) else { continue }
-            let date = parseDate(item.dateTime)
-            let syncID = "fitbit-rhr-\(item.dateTime)"
+            let day = DateFormatters.dayString(item.dayStart)
+            let syncID = "\(idPrefix)-rhr-\(day)"
             if !stateStore.hasSeen(identifier: syncID, metric: .restingHeartRate) {
-                try await healthKit.saveRestingHeartRate(bpm, date: date, syncID: syncID)
+                try await healthKit.saveRestingHeartRate(item.value, date: item.dayStart, syncID: syncID)
                 stateStore.markSeen(identifier: syncID, metric: .restingHeartRate)
                 written += 1
             }
@@ -110,15 +118,14 @@ final class SyncEngine {
     }
 
     private func syncActiveEnergy(start: Date, end: Date) async throws -> Int {
-        let daily = try await fitbit.fetchDailyCalories(start: start, end: end)
+        let daily = try await client.fetchDailyActiveEnergy(start: start, end: end)
         var written = 0
         for item in daily {
-            guard let kcal = Double(item.value) else { continue }
-            let dayStart = parseDate(item.dateTime)
-            guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart) else { continue }
-            let syncID = "fitbit-active-energy-\(item.dateTime)"
+            guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: item.dayStart) else { continue }
+            let day = DateFormatters.dayString(item.dayStart)
+            let syncID = "\(idPrefix)-active-energy-\(day)"
             if !stateStore.hasSeen(identifier: syncID, metric: .activeEnergy) {
-                try await healthKit.saveActiveEnergy(kcal: kcal, start: dayStart, end: dayEnd, syncID: syncID)
+                try await healthKit.saveActiveEnergy(kcal: item.value, start: item.dayStart, end: dayEnd, syncID: syncID)
                 stateStore.markSeen(identifier: syncID, metric: .activeEnergy)
                 written += 1
             }
@@ -127,18 +134,12 @@ final class SyncEngine {
     }
 
     private func syncSleep(start: Date, end: Date) async throws -> Int {
-        let logs = try await fitbit.fetchSleepLogs(start: start, end: end)
+        let logs = try await client.fetchSleepLogs(start: start, end: end)
         var written = 0
         for item in logs {
-            let syncID = "fitbit-sleep-\(item.logId ?? Int64.random(in: 0...9_999_999))"
+            let syncID = "\(idPrefix)-sleep-\(item.id)"
             guard !stateStore.hasSeen(identifier: syncID, metric: .sleep) else { continue }
-            guard let startText = item.startTime,
-                  let endText = item.endTime,
-                  let sleepStart = Self.parseSleepDate(startText),
-                  let sleepEnd = Self.parseSleepDate(endText) else {
-                continue
-            }
-            try await healthKit.saveSleep(start: sleepStart, end: sleepEnd, syncID: syncID)
+            try await healthKit.saveSleep(start: item.start, end: item.end, syncID: syncID)
             stateStore.markSeen(identifier: syncID, metric: .sleep)
             written += 1
         }
@@ -150,40 +151,22 @@ final class SyncEngine {
         if let date = isoFormatter.date(from: text) {
             return date
         }
-        
+
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .iso8601)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone.current
-        
+
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
         if let date = formatter.date(from: text) {
             return date
         }
-        
+
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
         if let date = formatter.date(from: text) {
             return date
         }
-        
+
         return nil
-    }
-
-    private func parseDate(_ text: String) -> Date {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .iso8601)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone.current
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: text) ?? Date()
-    }
-
-    private func parseDateTime(date: String, time: String) -> Date {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .iso8601)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone.current
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return formatter.date(from: "\(date) \(time)") ?? parseDate(date)
     }
 }
