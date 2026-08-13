@@ -7,7 +7,7 @@ struct FitbitHealthSyncApp: App {
     @StateObject private var model: AppModel
 
     init() {
-        configureAppearance()
+        Self.configureAppearance()
         let model = AppModel()
         // Handlers must be registered before launch finishes — onAppear is too late.
         model.backgroundScheduler.registerLaunchHandlers()
@@ -24,7 +24,7 @@ struct FitbitHealthSyncApp: App {
         }
     }
 
-    private func configureAppearance() {
+    private static func configureAppearance() {
         // Use explicit opaque bar backgrounds to prevent black safe-area
         // fallback when bars render outside SwiftUI content.
         let navBar = UINavigationBarAppearance()
