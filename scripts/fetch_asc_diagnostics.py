@@ -152,10 +152,16 @@ def main() -> int:
     # Permission probes
     probes = [
         ("analyticsReportRequests", f"/v1/apps/{app_id}/analyticsReportRequests?limit=5"),
-        ("perfPowerMetrics", f"/v1/apps/{app_id}/perfPowerMetrics?filter[platform]=IOS"),
         ("builds", f"/v1/builds?filter[app]={app_id}&sort=-uploadedDate&limit=10"),
         ("betaFeedbackCrashSubmissions", f"/v1/apps/{app_id}/betaFeedbackCrashSubmissions?limit=1"),
     ]
+    st, body = request_json(
+        token,
+        f"/v1/apps/{app_id}/perfPowerMetrics?filter[platform]=IOS",
+        accept=ACCEPT_DIAG,
+    )
+    extra = f" · {errors_summary(body)}" if st != 200 else f" · {len(body.get('data') or [])} items"
+    print(f"PROBE perfPowerMetrics → {st}{extra}")
     for name, path in probes:
         st, body = request_json(token, path)
         extra = ""
@@ -165,44 +171,85 @@ def main() -> int:
             extra = f" · {errors_summary(body)}"
         print(f"PROBE {name} → {st}{extra}")
 
-    # Analytics: request a snapshot if we can (first time needs Admin; then 24–48h)
-    st, body = request_json(
-        token,
-        "/v1/analyticsReportRequests",
-        method="POST",
-        body={
-            "data": {
-                "type": "analyticsReportRequests",
-                "attributes": {"accessType": "ONE_TIME_SNAPSHOT"},
-                "relationships": {
-                    "app": {"data": {"type": "apps", "id": app_id}}
-                },
-            }
-        },
-    )
-    print(f"POST analyticsReportRequests ONE_TIME_SNAPSHOT → {st}")
-    if st not in (200, 201):
-        print(f"  {errors_summary(body)}")
-    else:
-        req_id = (body.get("data") or {}).get("id")
-        print(f"  request id {req_id} (reports usually appear in 24–48h)")
-
-    st, body = request_json(token, f"/v1/apps/{app_id}/analyticsReportRequests?limit=10")
+    # Analytics snapshot: create once. Reports usually populate in 24–48h.
+    st, existing = request_json(token, f"/v1/apps/{app_id}/analyticsReportRequests?limit=10")
+    has_snapshot = False
     if st == 200:
-        for item in body.get("data") or []:
+        for item in existing.get("data") or []:
+            if (item.get("attributes") or {}).get("accessType") == "ONE_TIME_SNAPSHOT":
+                has_snapshot = True
+                break
+    if not has_snapshot:
+        st, body = request_json(
+            token,
+            "/v1/analyticsReportRequests",
+            method="POST",
+            body={
+                "data": {
+                    "type": "analyticsReportRequests",
+                    "attributes": {"accessType": "ONE_TIME_SNAPSHOT"},
+                    "relationships": {
+                        "app": {"data": {"type": "apps", "id": app_id}}
+                    },
+                }
+            },
+        )
+        print(f"POST analyticsReportRequests ONE_TIME_SNAPSHOT → {st}")
+        if st not in (200, 201):
+            print(f"  {errors_summary(body)}")
+        st, existing = request_json(token, f"/v1/apps/{app_id}/analyticsReportRequests?limit=10")
+    else:
+        print("ONE_TIME_SNAPSHOT already exists — not creating another")
+
+    if st == 200:
+        for item in existing.get("data") or []:
             a = item.get("attributes") or {}
             print(
                 f"  existing request {item.get('id')} access={a.get('accessType')} "
                 f"stopped={a.get('stoppedDueToInactivity')}"
             )
-            rel = f"/v1/analyticsReportRequests/{item.get('id')}/reports?limit=50"
-            rst, rbody = request_json(token, rel)
-            if rst != 200:
-                print(f"    reports → {rst} {errors_summary(rbody)}")
+            try:
+                reports = paged(token, f"/v1/analyticsReportRequests/{item.get('id')}/reports?limit=200")
+            except RuntimeError as exc:
+                print(f"    reports → {exc}")
                 continue
-            for report in rbody.get("data") or []:
+            interesting = []
+            for report in reports:
                 ra = report.get("attributes") or {}
-                print(f"    report {ra.get('name')} category={ra.get('category')}")
+                name = (ra.get("name") or "")
+                cat = ra.get("category") or ""
+                blob = f"{name} {cat}".lower()
+                if any(
+                    key in blob
+                    for key in (
+                        "crash",
+                        "download",
+                        "session",
+                        "install",
+                        "deletion",
+                        "discover",
+                        "engagement",
+                    )
+                ):
+                    interesting.append((report.get("id"), name, cat))
+            print(f"    {len(reports)} reports · {len(interesting)} commerce/usage/crash")
+            for rid, name, cat in interesting:
+                print(f"    • {name} [{cat}]")
+                try:
+                    instances = paged(
+                        token,
+                        f"/v1/analyticsReports/{rid}/instances?limit=10",
+                    )
+                except RuntimeError as exc:
+                    print(f"      instances → {exc}")
+                    continue
+                print(f"      {len(instances)} instances")
+                for inst in instances[:3]:
+                    ia = inst.get("attributes") or {}
+                    print(
+                        f"      instance {inst.get('id')} granularity={ia.get('granularity')} "
+                        f"processing={ia.get('processingDate')}"
+                    )
 
     builds = []
     try:
@@ -224,7 +271,7 @@ def main() -> int:
             f"Build {version} id={bid} processing={battrs.get('processingState')} "
             f"expired={expired} uploaded={battrs.get('uploadedDate')}"
         )
-        for dtype in ("CRASHES", "HANGS"):
+        for dtype in ("LAUNCHES", "HANGS", "DISK_WRITES"):
             path = (
                 f"/v1/builds/{bid}/diagnosticSignatures"
                 f"?filter[diagnosticType]={dtype}&limit=20"
