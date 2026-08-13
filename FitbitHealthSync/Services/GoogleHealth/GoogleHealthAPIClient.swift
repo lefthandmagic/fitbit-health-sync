@@ -13,7 +13,7 @@ final class GoogleHealthAPIClient: HealthDataClient {
     func fetchWeightLogs(start: Date, end: Date) async throws -> [WeightLog] {
         let points: [GoogleDataPoint] = try await listAll(
             dataType: "weight",
-            filter: #"weight.sample_time.physical_time >= "\#(rfc3339(start))" AND weight.sample_time.physical_time < "\#(rfc3339(end))""#
+            filter: GoogleHealthFilters.samplePhysical(dataType: "weight", start: start, end: end)
         )
         return points.compactMap { point in
             guard let weight = point.weight, let grams = weight.weightGrams else { return nil }
@@ -44,7 +44,7 @@ final class GoogleHealthAPIClient: HealthDataClient {
     func fetchDailyRestingHeartRate(start: Date, end: Date) async throws -> [DailyMetric] {
         let points: [GoogleDataPoint] = try await listAll(
             dataType: "daily-resting-heart-rate",
-            filter: #"daily_resting_heart_rate.date >= "\#(DateFormatters.dayString(start))" AND daily_resting_heart_rate.date <= "\#(DateFormatters.dayString(end))""#
+            filter: GoogleHealthFilters.dailyDate(dataType: "daily_resting_heart_rate", start: start, end: end)
         )
         return points.compactMap { point in
             guard let rhr = point.dailyRestingHeartRate,
@@ -58,7 +58,7 @@ final class GoogleHealthAPIClient: HealthDataClient {
     func fetchSleepLogs(start: Date, end: Date) async throws -> [SleepLog] {
         let points: [GoogleDataPoint] = try await listAll(
             dataType: "sleep",
-            filter: #"sleep.interval.start_time >= "\#(rfc3339(start))" AND sleep.interval.start_time < "\#(rfc3339(end))""#
+            filter: GoogleHealthFilters.sleepEndTime(start: start, end: end)
         )
         return points.compactMap { point in
             guard let sleep = point.sleep,
@@ -77,7 +77,7 @@ final class GoogleHealthAPIClient: HealthDataClient {
     func fetchBodyFatLogs(start: Date, end: Date) async throws -> [WeightLog] {
         let points: [GoogleDataPoint] = try await listAll(
             dataType: "body-fat",
-            filter: #"body_fat.sample_time.physical_time >= "\#(rfc3339(start))" AND body_fat.sample_time.physical_time < "\#(rfc3339(end))""#
+            filter: GoogleHealthFilters.samplePhysical(dataType: "body_fat", start: start, end: end)
         )
         return points.compactMap { point in
             guard let fat = point.bodyFat, let percent = fat.percentage else { return nil }
@@ -173,15 +173,40 @@ final class GoogleHealthAPIClient: HealthDataClient {
         return try decoder.decode(T.self, from: data)
     }
 
-    private func rfc3339(_ date: Date) -> String {
-        ISO8601DateFormatter().string(from: date)
-    }
-
     private func parsePhysical(_ text: String?) -> Date? {
         guard let text else { return nil }
         if let date = iso.date(from: text) { return date }
         let fallback = ISO8601DateFormatter()
         return fallback.date(from: text)
+    }
+}
+
+/// Google Health `dataPoints` list filters. Only `>=` and `<` are valid comparators.
+enum GoogleHealthFilters {
+    static func samplePhysical(dataType: String, start: Date, end: Date) -> String {
+        #"\#(dataType).sample_time.physical_time >= "\#(rfc3339(start))" AND \#(dataType).sample_time.physical_time < "\#(rfc3339(end))""#
+    }
+
+    static func dailyDate(dataType: String, start: Date, end: Date) -> String {
+        #"\#(dataType).date >= "\#(DateFormatters.dayString(start))" AND \#(dataType).date < "\#(exclusiveEndDay(end))""#
+    }
+
+    /// Sleep only supports filtering on `interval.end_time`, not `start_time`.
+    static func sleepEndTime(start: Date, end: Date) -> String {
+        #"sleep.interval.end_time >= "\#(rfc3339(start))" AND sleep.interval.end_time < "\#(rfc3339(end))""#
+    }
+
+    static func rfc3339(_ date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter.string(from: date)
+    }
+
+    static func exclusiveEndDay(_ end: Date) -> String {
+        let startOfEnd = Calendar.current.startOfDay(for: end)
+        let next = Calendar.current.date(byAdding: .day, value: 1, to: startOfEnd) ?? end
+        return DateFormatters.dayString(next)
     }
 }
 

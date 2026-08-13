@@ -103,4 +103,22 @@ final class FitbitHealthSyncTests: XCTestCase {
         let parsed = DateFormatters.parseDay("2026-08-13")
         XCTAssertEqual(DateFormatters.dayString(parsed), "2026-08-13")
     }
+
+    func testGoogleHealthDailyFilterUsesExclusiveEndNotLessOrEqual() {
+        let start = DateFormatters.parseDay("2026-08-06")
+        let end = DateFormatters.parseDay("2026-08-13")
+        let filter = GoogleHealthFilters.dailyDate(dataType: "daily_resting_heart_rate", start: start, end: end)
+        XCTAssertFalse(filter.contains(" <= "))
+        XCTAssertTrue(filter.contains(" >= \"2026-08-06\""))
+        XCTAssertTrue(filter.contains(" < \"2026-08-14\""))
+    }
+
+    func testGoogleHealthSleepFilterUsesEndTime() {
+        let start = Date(timeIntervalSince1970: 1_786_608_000)
+        let end = Date(timeIntervalSince1970: 1_786_694_400)
+        let filter = GoogleHealthFilters.sleepEndTime(start: start, end: end)
+        XCTAssertTrue(filter.contains("sleep.interval.end_time"))
+        XCTAssertFalse(filter.contains("start_time"))
+        XCTAssertFalse(filter.contains(" <= "))
+    }
 }

@@ -17,12 +17,27 @@ final class SyncEngine {
         let start = Date()
         var totalWritten = 0
         var details: [String] = []
+        var failures = 0
 
-        for metric in metrics {
-            let written = try await sync(metric: metric)
-            totalWritten += written
-            details.append("\(metric.title): \(written)")
-            stateStore.setLastSyncDate(Date(), for: metric)
+        for metric in metrics.sorted(by: { $0.rawValue < $1.rawValue }) {
+            do {
+                let written = try await sync(metric: metric)
+                totalWritten += written
+                details.append("\(metric.title): \(written)")
+                stateStore.setLastSyncDate(Date(), for: metric)
+            } catch {
+                failures += 1
+                let snippet = String(error.localizedDescription.prefix(120))
+                details.append("\(metric.title): failed — \(snippet)")
+            }
+        }
+
+        if failures == metrics.count, !metrics.isEmpty {
+            throw NSError(
+                domain: "Sync",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: details.joined(separator: "; ")]
+            )
         }
 
         return SyncRunResult(

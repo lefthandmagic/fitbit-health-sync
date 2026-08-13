@@ -33,6 +33,7 @@ final class AppModel: ObservableObject {
         self.stateStore = stateStore
         self.keychainStore = keychainStore
         refreshAuthState()
+        refreshLastSyncText()
     }
 
     var connectionTitle: String {
@@ -129,6 +130,7 @@ final class AppModel: ObservableObject {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         lastSyncText = formatter.string(from: result.finishedAt)
+        persistLastSync(result.finishedAt)
         appendLog("Sync complete (\(result.writtenCount) samples).")
         result.details.forEach { appendLog("  \($0)") }
         backgroundScheduler.scheduleNext()
@@ -143,5 +145,24 @@ final class AppModel: ObservableObject {
 
     func clearLogs() {
         logs.removeAll()
+    }
+
+    private func persistLastSync(_ date: Date) {
+        UserDefaults.standard.set(ISO8601DateFormatter().string(from: date), forKey: "sync.lastFinishedAt")
+    }
+
+    private func refreshLastSyncText() {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        if let raw = UserDefaults.standard.string(forKey: "sync.lastFinishedAt"),
+           let date = ISO8601DateFormatter().date(from: raw) {
+            lastSyncText = formatter.string(from: date)
+            return
+        }
+        let metricDates = SyncMetric.allCases.compactMap { stateStore.lastSyncDate(for: $0) }
+        if let latest = metricDates.max() {
+            lastSyncText = formatter.string(from: latest)
+        }
     }
 }
