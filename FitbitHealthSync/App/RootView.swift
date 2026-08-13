@@ -142,6 +142,11 @@ private struct HomeView: View {
         VStack(spacing: 12) {
             if model.needsGoogleReconnect {
                 VStack(alignment: .leading, spacing: 8) {
+                    if let banner = model.fitbitSunsetBanner {
+                        Text(banner)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.orange)
+                    }
                     Text("Fitbit Health Sync collects health and fitness data (weight, body fat, steps, sleep, resting heart rate, and active energy) to write it into Apple Health on this device. Data stays on your phone.")
                         .font(.caption)
                         .foregroundStyle(.secondary)

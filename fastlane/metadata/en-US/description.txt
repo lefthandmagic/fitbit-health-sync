@@ -1,0 +1,15 @@
+Fitbit Health Sync copies selected health metrics into Apple Health on this iPhone. Data is processed on-device. There is no account with us and no server storing your health data.
+
+Connect with Google Health (the path going forward). Existing Fitbit connections keep working until Google turns down the Fitbit Web API in September 2026. Tokens do not transfer — reconnect with Google before then.
+
+Metrics you can sync:
+• Body weight
+• Body fat percentage
+• Steps
+• Sleep
+• Resting heart rate
+• Active energy
+
+Choose which metrics to write and how often to attempt background sync. iOS decides when background work actually runs.
+
+Privacy policy: https://lefthandmagic.github.io/fitbit-health-sync/privacy

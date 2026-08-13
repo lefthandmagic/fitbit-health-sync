@@ -121,4 +121,31 @@ final class FitbitHealthSyncTests: XCTestCase {
         XCTAssertFalse(filter.contains("start_time"))
         XCTAssertFalse(filter.contains(" <= "))
     }
+
+    func testGoogleHealthSampleFilterUsesExclusiveEnd() {
+        let start = Date(timeIntervalSince1970: 1_786_608_000)
+        let end = Date(timeIntervalSince1970: 1_786_694_400)
+        let filter = GoogleHealthFilters.samplePhysical(dataType: "weight", start: start, end: end)
+        XCTAssertTrue(filter.contains("weight.sample_time.physical_time >= "))
+        XCTAssertTrue(filter.contains(" AND weight.sample_time.physical_time < "))
+        XCTAssertFalse(filter.contains(" <= "))
+        XCTAssertFalse(filter.contains(" > "))
+    }
+
+    func testFitbitSunsetCopy() {
+        let sunset = FitbitSunset.date
+        XCTAssertEqual(FitbitSunset.daysRemaining(now: sunset), 0)
+        XCTAssertEqual(
+            FitbitSunset.subtitle(now: sunset),
+            "Fitbit API shuts down today — reconnect with Google"
+        )
+
+        let after = Calendar.current.date(byAdding: .day, value: 1, to: sunset)!
+        XCTAssertEqual(FitbitSunset.daysRemaining(now: after), -1)
+        XCTAssertTrue(FitbitSunset.banner(now: after).contains("has shut down"))
+
+        let before = Calendar.current.date(byAdding: .day, value: -19, to: sunset)!
+        XCTAssertEqual(FitbitSunset.daysRemaining(now: before), 19)
+        XCTAssertTrue(FitbitSunset.subtitle(now: before).contains("19 days"))
+    }
 }

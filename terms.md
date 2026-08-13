@@ -1,6 +1,6 @@
 # Terms of Service
 
-_Last updated: 2026-02-21_
+_Last updated: 2026-08-13_
 
 By using Fitbit Health Sync, you agree to these terms.
 

@@ -22,7 +22,7 @@ final class AppModel: ObservableObject {
     private(set) lazy var backgroundScheduler = BackgroundSyncScheduler(appModel: self, settingsStore: settingsStore)
 
     /// Fitbit Web API is turned down September 2026.
-    static let fitbitSunset = Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: 1))!
+    static let fitbitSunset = FitbitSunset.date
 
     init(
         settingsStore: AppSettingsStore = AppSettingsStore(),
@@ -49,10 +49,15 @@ final class AppModel: ObservableObject {
         case .google: return "Auto-sync Google Health data to Apple Health"
         case .fitbit:
             return GoogleHealthConfig.isConfigured
-                ? "Reconnect with Google before September 2026"
+                ? FitbitSunset.subtitle()
                 : "Auto-sync Fitbit data to Apple Health"
         case nil: return "Tap below to connect your account"
         }
+    }
+
+    var fitbitSunsetBanner: String? {
+        guard needsGoogleReconnect else { return nil }
+        return FitbitSunset.banner()
     }
 
     func refreshAuthState() {
@@ -164,5 +169,36 @@ final class AppModel: ObservableObject {
         if let latest = metricDates.max() {
             lastSyncText = formatter.string(from: latest)
         }
+    }
+}
+
+enum FitbitSunset {
+    static let date = Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: 1))!
+
+    static func daysRemaining(now: Date = Date(), sunset: Date = date) -> Int {
+        let cal = Calendar.current
+        return cal.dateComponents(
+            [.day],
+            from: cal.startOfDay(for: now),
+            to: cal.startOfDay(for: sunset)
+        ).day ?? 0
+    }
+
+    static func subtitle(now: Date = Date()) -> String {
+        let days = daysRemaining(now: now)
+        if days < 0 { return "Fitbit API has shut down — reconnect with Google" }
+        if days == 0 { return "Fitbit API shuts down today — reconnect with Google" }
+        return "Reconnect with Google — Fitbit API ends in \(days) days"
+    }
+
+    static func banner(now: Date = Date()) -> String {
+        let days = daysRemaining(now: now)
+        if days < 0 {
+            return "The Fitbit Web API has shut down. Reconnect with Google to keep syncing."
+        }
+        if days == 0 {
+            return "The Fitbit Web API shuts down today. Reconnect with Google to keep syncing."
+        }
+        return "The Fitbit Web API shuts down in \(days) days (1 Sept 2026). Reconnect with Google to keep syncing."
     }
 }

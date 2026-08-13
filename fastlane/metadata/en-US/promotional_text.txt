@@ -1,1 +1,1 @@
-Auto-sync Fitbit data to Apple Health with a clean, private, on-device experience.
+Sync Google Health into Apple Health on-device. Existing Fitbit logins work until Google turns the Fitbit API down in September 2026.

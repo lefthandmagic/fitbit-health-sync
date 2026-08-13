@@ -1,0 +1,1 @@
+Adds Google Health as the new sync source. Existing Fitbit logins still work until Google turns the Fitbit Web API down in September 2026 — reconnect with Google before then. Data still stays on your iPhone.

@@ -31,7 +31,7 @@ Minimal iPhone app to sync Fitbit / Google Health data into Apple Health.
 5. Paste the client ID into `FitbitHealthSync/Services/GoogleHealth/GoogleHealthConfig.swift` (`clientID`).
 6. Add a URL scheme in `Info.plist` equal to the **reversed** client ID  
    (`123-abc.apps.googleusercontent.com` → `com.googleusercontent.apps.123-abc`).
-7. Host the updated `privacy.md` at the public URL already used for App Store review.
+7. Privacy / terms are already hosted at https://lefthandmagic.github.io/fitbit-health-sync/ (GitHub Pages from `main`). Merge updates there automatically.
 8. Unverified apps are capped at **100 users**. Submit OAuth verification if you need more. Google Health scopes are Restricted.
 
 Until step 5 is done, the app keeps using the existing Fitbit client ID `239Z9K`.
