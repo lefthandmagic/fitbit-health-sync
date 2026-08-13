@@ -1,0 +1,41 @@
+name: App Store diagnostics
+
+# Uses the existing TestFlight ASC key. Prints a public summary only
+# (counts + crash signature names). No stack traces, no key/JWT.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install JWT deps
+        run: pip install --quiet "PyJWT[crypto]" cryptography
+
+      - name: Fetch crash signatures + analytics access
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          ASC_SUMMARY_PATH: asc-diagnostics-summary.json
+        run: python3 scripts/fetch_asc_diagnostics.py
+
+      - name: Upload signature summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asc-diagnostics-summary
+          path: asc-diagnostics-summary.json
+          if-no-files-found: ignore
+          retention-days: 7
