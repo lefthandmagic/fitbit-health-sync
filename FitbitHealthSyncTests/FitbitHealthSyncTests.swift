@@ -181,11 +181,15 @@ final class FitbitHealthSyncTests: XCTestCase {
         XCTAssertFalse(ids.contains { $0.contains("$(") })
     }
 
-    func testSyncIntervalFifteenMinutesUsesMinutesNotHours() {
-        XCTAssertEqual(SyncIntervalHours.minutes15.delay, 15 * 60)
+    func testSyncIntervalDelayUsesHours() {
         XCTAssertEqual(SyncIntervalHours.every2.delay, 2 * 3600)
         XCTAssertEqual(SyncIntervalHours.every4.delay, 4 * 3600)
-        XCTAssertEqual(SyncIntervalHours.minutes15.title, "Every 15 minutes")
+        XCTAssertEqual(SyncIntervalHours.every8.delay, 8 * 3600)
+        XCTAssertEqual(SyncIntervalHours.every12.delay, 12 * 3600)
+        XCTAssertEqual(SyncIntervalHours.every4.title, "Every 4 hours")
+        XCTAssertEqual(SyncIntervalHours.every4.shortTitle, "4h")
+        XCTAssertEqual(SyncIntervalHours.allCases.map(\.rawValue), [2, 4, 8, 12])
+        XCTAssertNil(SyncIntervalHours(rawValue: 15))
     }
 
     func testMissingSyncIntervalDefaultsToEvery4NotZero() {
@@ -194,12 +198,11 @@ final class FitbitHealthSyncTests: XCTestCase {
         XCTAssertEqual(store.syncInterval, .every4)
     }
 
-    func testAppSettingsStorePersistsFifteenMinuteInterval() {
+    func testUnknownSyncIntervalFallsBackToEvery4() {
+        testDefaults.set(15, forKey: "sync.interval.hours")
         let store = AppSettingsStore(defaults: testDefaults)
-        store.syncInterval = .minutes15
-        let reloaded = AppSettingsStore(defaults: testDefaults)
-        XCTAssertEqual(reloaded.syncInterval, .minutes15)
-        XCTAssertEqual(reloaded.syncInterval.delay, 15 * 60)
+        XCTAssertEqual(store.syncInterval, .every4)
+        XCTAssertEqual(store.syncInterval.delay, 4 * 3600)
     }
 
     func testOnceFlagRunsWorkOnlyOnce() {
@@ -212,8 +215,8 @@ final class FitbitHealthSyncTests: XCTestCase {
     }
 
     func testBackgroundRefreshMessaging() {
-        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.available), "BAR on")
-        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.denied), "BAR off (Settings)")
-        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.restricted), "BAR restricted")
+        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.available), "On")
+        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.denied), "Off — enable in iOS Settings")
+        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.restricted), "Restricted")
     }
 }

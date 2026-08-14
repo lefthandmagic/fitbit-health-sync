@@ -120,29 +120,19 @@ private struct HomeView: View {
     // MARK: Status row
 
     private var statusRow: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                StatusTile(
-                    symbol: "clock.arrow.circlepath",
-                    label: "Last Sync",
-                    value: model.lastSyncText,
-                    tint: .indigo
-                )
-                StatusTile(
-                    symbol: model.isSyncing ? "arrow.triangle.2.circlepath" : "checkmark.circle",
-                    label: "Status",
-                    value: model.isSyncing ? "Syncing..." : "Idle",
-                    tint: model.isSyncing ? .blue : .green
-                )
-            }
-            Text("Background: \(model.lastBackgroundText)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
-            Text("Schedule: \(model.lastScheduleText)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
+        HStack(spacing: 12) {
+            StatusTile(
+                symbol: "clock.arrow.circlepath",
+                label: "Last Sync",
+                value: model.lastSyncText,
+                tint: .indigo
+            )
+            StatusTile(
+                symbol: model.isSyncing ? "arrow.triangle.2.circlepath" : "checkmark.circle",
+                label: "Status",
+                value: model.isSyncing ? "Syncing..." : "Idle",
+                tint: model.isSyncing ? .blue : .green
+            )
         }
     }
 
@@ -269,14 +259,15 @@ private struct SettingsView: View {
                     Section {
                         Picker("Interval", selection: $selectedInterval) {
                             ForEach(SyncIntervalHours.allCases) { interval in
-                                Text(interval.title).tag(interval)
+                                Text(interval.shortTitle).tag(interval)
                             }
                         }
+                        .pickerStyle(.segmented)
                         .listRowBackground(Color(.secondarySystemGroupedBackground))
                     } header: {
                         Text("Background Sync Interval")
                     } footer: {
-                        Text("15 minutes is a request, not a guarantee — iOS usually waits longer, especially on low battery. Charge the phone, keep Background App Refresh on, then check Activity for a “BG:” line after leaving the app. “Run background path” on Activity tests the sync code, not iOS wake-ups.")
+                        Text("Background sync is best-effort. iOS decides when it actually runs — keep Background App Refresh on.")
                     }
 
                     Section("Metrics to Sync") {
@@ -323,20 +314,12 @@ private struct ActivityView: View {
                     Section {
                         Text("Background App Refresh: \(model.backgroundRefreshStatusText)")
                             .font(.subheadline)
-                        Text("Last iOS fire: \(model.lastBackgroundText)")
+                        Text("Last background sync: \(model.lastBackgroundText)")
                             .font(.subheadline)
-                        Text("Last schedule: \(model.lastScheduleText)")
-                            .font(.subheadline)
-                        Button {
-                            Task { await model.runBackgroundPathForDebug() }
-                        } label: {
-                            Label("Run background path now", systemImage: "hammer")
-                        }
-                        .disabled(model.isSyncing)
                     } header: {
-                        Text("Debug")
+                        Text("Background")
                     } footer: {
-                        Text("This button runs the same sync as a background task. It does not prove iOS will wake the app. Proof is a “BG: processing” or “BG: refresh” line after you leave (or kill) the app.")
+                        Text("iOS decides when background sync runs. Open the app and tap Sync Now if you need an immediate update.")
                     }
 
                     if model.logs.isEmpty {

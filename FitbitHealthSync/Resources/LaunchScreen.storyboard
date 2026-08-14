@@ -33,7 +33,7 @@
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Auto-sync Fitbit data to Apple Health" textAlignment="center" lineBreakMode="tailTruncation" minimumScaleFactor="0.85" translatesAutoresizingMaskIntoConstraints="NO" id="3o9-Uc-3yL">
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Auto-sync Google Health to Apple Health" textAlignment="center" lineBreakMode="tailTruncation" minimumScaleFactor="0.85" translatesAutoresizingMaskIntoConstraints="NO" id="3o9-Uc-3yL">
                                                 <rect key="frame" x="0.0" y="41" width="281" height="33"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <color key="textColor" systemColor="secondaryLabelColor"/>

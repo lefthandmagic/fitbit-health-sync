@@ -65,8 +65,11 @@ final class BackgroundSyncScheduler {
             guard let self else { return }
             let bar = self.appModel.backgroundRefreshStatusText
             if scheduleErrors.isEmpty {
-                let mins = max(1, Int(interval / 60))
-                self.appModel.noteBackgroundScheduled("\(bar) · waiting (≥\(mins)m, iOS decides)")
+                let hours = interval / 3600
+                let wait = hours >= 1
+                    ? "≥\(Int(hours))h"
+                    : "≥\(max(1, Int(interval / 60)))m"
+                self.appModel.noteBackgroundScheduled("\(bar) · next attempt in \(wait) (iOS decides)")
             } else {
                 self.appModel.noteBackgroundScheduled("failed · \(scheduleErrors.joined(separator: "; "))")
             }
@@ -138,10 +141,10 @@ final class OnceFlag: @unchecked Sendable {
 enum BackgroundRefreshMessaging {
     static func statusText(_ status: UIBackgroundRefreshStatus) -> String {
         switch status {
-        case .available: return "BAR on"
-        case .denied: return "BAR off (Settings)"
-        case .restricted: return "BAR restricted"
-        @unknown default: return "BAR unknown"
+        case .available: return "On"
+        case .denied: return "Off — enable in iOS Settings"
+        case .restricted: return "Restricted"
+        @unknown default: return "Unknown"
         }
     }
 }

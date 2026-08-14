@@ -207,12 +207,6 @@ final class AppModel: ObservableObject {
         appendLog("BG schedule: \(message)")
     }
 
-    /// Same code path as a BGTask, without waiting for iOS to wake the app.
-    func runBackgroundPathForDebug() async {
-        appendLog("Debug: running background path from Activity (not an iOS BGTask).")
-        _ = await runBackgroundSync(kind: "debug")
-    }
-
     func appendLog(_ message: String) {
         let timestamp = ISO8601DateFormatter().string(from: Date())
         logs.insert("[\(timestamp)] \(message)", at: 0)
