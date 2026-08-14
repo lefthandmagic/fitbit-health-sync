@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -7,6 +8,7 @@ final class AppModel: ObservableObject {
     @Published var isSyncing = false
     @Published var lastSyncText = "Never"
     @Published var lastBackgroundText = "Never"
+    @Published var lastScheduleText = "Not scheduled yet"
     @Published var logs: [String] = []
     @Published var authProvider: HealthAuthProvider?
     @Published var needsGoogleReconnect = false
@@ -27,6 +29,7 @@ final class AppModel: ObservableObject {
 
     private static let lastSyncKey = "sync.lastFinishedAt"
     private static let backgroundTextKey = "sync.lastBackgroundText"
+    private static let scheduleTextKey = "sync.lastScheduleText"
     private static let persistedLogsKey = "sync.persistedLogs"
 
     init(
@@ -41,6 +44,11 @@ final class AppModel: ObservableObject {
         refreshLastSyncText()
         loadPersistedLogs()
         lastBackgroundText = UserDefaults.standard.string(forKey: Self.backgroundTextKey) ?? "Never"
+        lastScheduleText = UserDefaults.standard.string(forKey: Self.scheduleTextKey) ?? "Not scheduled yet"
+    }
+
+    var backgroundRefreshStatusText: String {
+        BackgroundRefreshMessaging.statusText(UIApplication.shared.backgroundRefreshStatus)
     }
 
     var connectionTitle: String {
@@ -190,6 +198,19 @@ final class AppModel: ObservableObject {
 
     func markBackgroundExpired(kind: String) {
         recordBackground("\(kind) expired — iOS ended the task")
+    }
+
+    /// Schedule result only — does not overwrite a real iOS fire on the Background line.
+    func noteBackgroundScheduled(_ message: String) {
+        lastScheduleText = message
+        UserDefaults.standard.set(lastScheduleText, forKey: Self.scheduleTextKey)
+        appendLog("BG schedule: \(message)")
+    }
+
+    /// Same code path as a BGTask, without waiting for iOS to wake the app.
+    func runBackgroundPathForDebug() async {
+        appendLog("Debug: running background path from Activity (not an iOS BGTask).")
+        _ = await runBackgroundSync(kind: "debug")
     }
 
     func appendLog(_ message: String) {

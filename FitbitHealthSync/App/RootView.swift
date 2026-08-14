@@ -139,6 +139,10 @@ private struct HomeView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 4)
+            Text("Schedule: \(model.lastScheduleText)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4)
         }
     }
 
@@ -265,16 +269,14 @@ private struct SettingsView: View {
                     Section {
                         Picker("Interval", selection: $selectedInterval) {
                             ForEach(SyncIntervalHours.allCases) { interval in
-                                Text(interval.shortTitle).tag(interval)
+                                Text(interval.title).tag(interval)
                             }
                         }
-                        .pickerStyle(.segmented)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        .listRowBackground(Color(.secondarySystemGroupedBackground))
                     } header: {
                         Text("Background Sync Interval")
                     } footer: {
-                        Text("iOS decides when background sync actually runs. After installing a new build, open the app once, tap Sync Now, then leave it overnight. Check Activity for a “BG:” line — that’s the proof it ran.")
+                        Text("15 minutes is a request, not a guarantee — iOS usually waits longer, especially on low battery. Charge the phone, keep Background App Refresh on, then check Activity for a “BG:” line after leaving the app. “Run background path” on Activity tests the sync code, not iOS wake-ups.")
                     }
 
                     Section("Metrics to Sync") {
@@ -317,24 +319,44 @@ private struct ActivityView: View {
         NavigationView {
             ZStack {
                 AppBackground()
-                Group {
-                    if model.logs.isEmpty {
-                        ContentUnavailableView(
-                            "No Activity Yet",
-                            systemImage: "waveform.path.ecg",
-                            description: Text("Sync logs will appear here after your first sync.")
-                        )
-                    } else {
-                        List(Array(model.logs.enumerated()), id: \.offset) { _, line in
-                            Text(line)
-                                .font(.system(.caption, design: .monospaced))
-                                .foregroundStyle(.primary)
-                                .textSelection(.enabled)
-                                .listRowBackground(Color(.secondarySystemGroupedBackground))
+                List {
+                    Section {
+                        Text("Background App Refresh: \(model.backgroundRefreshStatusText)")
+                            .font(.subheadline)
+                        Text("Last iOS fire: \(model.lastBackgroundText)")
+                            .font(.subheadline)
+                        Text("Last schedule: \(model.lastScheduleText)")
+                            .font(.subheadline)
+                        Button {
+                            Task { await model.runBackgroundPathForDebug() }
+                        } label: {
+                            Label("Run background path now", systemImage: "hammer")
                         }
-                        .scrollContentBackground(.hidden)
+                        .disabled(model.isSyncing)
+                    } header: {
+                        Text("Debug")
+                    } footer: {
+                        Text("This button runs the same sync as a background task. It does not prove iOS will wake the app. Proof is a “BG: processing” or “BG: refresh” line after you leave (or kill) the app.")
+                    }
+
+                    if model.logs.isEmpty {
+                        Section {
+                            Text("Sync logs will appear here after your first sync.")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Section("Logs") {
+                            ForEach(Array(model.logs.enumerated()), id: \.offset) { _, line in
+                                Text(line)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundStyle(.primary)
+                                    .textSelection(.enabled)
+                                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                            }
+                        }
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Activity")
             .navigationBarTitleDisplayMode(.large)

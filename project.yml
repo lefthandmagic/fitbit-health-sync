@@ -17,8 +17,8 @@ targets:
       path: FitbitHealthSync/Resources/Info.plist
       properties:
         BGTaskSchedulerPermittedIdentifiers:
-          - $(PRODUCT_BUNDLE_IDENTIFIER).refresh
-          - $(PRODUCT_BUNDLE_IDENTIFIER).processing
+          - com.praveenmurugesan.FitbitHealthSync.refresh
+          - com.praveenmurugesan.FitbitHealthSync.processing
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.praveenmurugesan.fitbithealthsync

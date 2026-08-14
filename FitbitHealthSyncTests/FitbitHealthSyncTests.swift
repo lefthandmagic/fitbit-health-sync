@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import FitbitHealthSync
 
 final class FitbitHealthSyncTests: XCTestCase {
@@ -158,5 +159,61 @@ final class FitbitHealthSyncTests: XCTestCase {
             BackgroundSyncScheduler.processingIdentifier,
             "com.praveenmurugesan.FitbitHealthSync.processing"
         )
+    }
+
+    func testInfoPlistBackgroundIdentifiersAreHardcodedAndMatchScheduler() throws {
+        let plistURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("FitbitHealthSync/Resources/Info.plist")
+        let data = try Data(contentsOf: plistURL)
+        let plist = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
+        )
+        let ids = try XCTUnwrap(plist["BGTaskSchedulerPermittedIdentifiers"] as? [String])
+        XCTAssertEqual(
+            Set(ids),
+            [
+                BackgroundSyncScheduler.refreshIdentifier,
+                BackgroundSyncScheduler.processingIdentifier
+            ]
+        )
+        XCTAssertFalse(ids.contains { $0.contains("$(") })
+    }
+
+    func testSyncIntervalFifteenMinutesUsesMinutesNotHours() {
+        XCTAssertEqual(SyncIntervalHours.minutes15.delay, 15 * 60)
+        XCTAssertEqual(SyncIntervalHours.every2.delay, 2 * 3600)
+        XCTAssertEqual(SyncIntervalHours.every4.delay, 4 * 3600)
+        XCTAssertEqual(SyncIntervalHours.minutes15.title, "Every 15 minutes")
+    }
+
+    func testMissingSyncIntervalDefaultsToEvery4NotZero() {
+        XCTAssertNil(SyncIntervalHours(rawValue: 0))
+        let store = AppSettingsStore(defaults: testDefaults)
+        XCTAssertEqual(store.syncInterval, .every4)
+    }
+
+    func testAppSettingsStorePersistsFifteenMinuteInterval() {
+        let store = AppSettingsStore(defaults: testDefaults)
+        store.syncInterval = .minutes15
+        let reloaded = AppSettingsStore(defaults: testDefaults)
+        XCTAssertEqual(reloaded.syncInterval, .minutes15)
+        XCTAssertEqual(reloaded.syncInterval.delay, 15 * 60)
+    }
+
+    func testOnceFlagRunsWorkOnlyOnce() {
+        let flag = OnceFlag()
+        var count = 0
+        XCTAssertTrue(flag.runOnce { count += 1 })
+        XCTAssertFalse(flag.runOnce { count += 1 })
+        XCTAssertFalse(flag.runOnce { count += 1 })
+        XCTAssertEqual(count, 1)
+    }
+
+    func testBackgroundRefreshMessaging() {
+        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.available), "BAR on")
+        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.denied), "BAR off (Settings)")
+        XCTAssertEqual(BackgroundRefreshMessaging.statusText(.restricted), "BAR restricted")
     }
 }

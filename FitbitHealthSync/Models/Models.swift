@@ -34,14 +34,32 @@ enum SyncMetric: String, CaseIterable, Codable, Identifiable {
 }
 
 enum SyncIntervalHours: Int, CaseIterable, Codable, Identifiable {
+    case minutes15 = 15
     case every2 = 2
     case every4 = 4
     case every8 = 8
     case every12 = 12
 
     var id: Int { rawValue }
-    var title: String { "Every \(rawValue) hours" }
-    var shortTitle: String { "\(rawValue)h" }
+    var title: String {
+        switch self {
+        case .minutes15: return "Every 15 minutes"
+        default: return "Every \(rawValue) hours"
+        }
+    }
+    var shortTitle: String {
+        switch self {
+        case .minutes15: return "15m"
+        default: return "\(rawValue)h"
+        }
+    }
+    /// Hint to iOS. The system will not honor a few minutes; 15m is the practical debug floor.
+    var delay: TimeInterval {
+        switch self {
+        case .minutes15: return 15 * 60
+        default: return TimeInterval(rawValue * 3600)
+        }
+    }
 }
 
 struct FitbitWeightLog: Codable {
