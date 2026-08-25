@@ -1,0 +1,24 @@
+name: Shift TestFlight
+
+# Builds lefthandmagic/shift with this repo's App Store Connect + distribution cert secrets.
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_testflight:
+        description: "Upload build to TestFlight"
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  release:
+    uses: lefthandmagic/shift/.github/workflows/ios-release.yml@main
+    with:
+      upload_to_testflight: ${{ inputs.upload_to_testflight }}
+    secrets:
+      APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
