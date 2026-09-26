@@ -24,8 +24,9 @@ jobs:
           BUNDLE_ID: ${{ inputs.bundle_id }}
           BUNDLE_NAME: ${{ inputs.name }}
         run: |
-          python3 -m pip install --quiet pyjwt cryptography
-          python3 - << 'PY'
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          "$RUNNER_TEMP/venv/bin/python" - << 'PY'
           import os, time, json, urllib.request, urllib.error
           import jwt
 
