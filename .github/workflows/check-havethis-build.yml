@@ -1,0 +1,37 @@
+name: Check HaveThis build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: macos-15
+    steps:
+      - name: Read latest TestFlight build
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          "$RUNNER_TEMP/venv/bin/python" - << 'PY'
+          import os, time, json, urllib.request
+          import jwt
+          key = os.environ["APPSTORE_PRIVATE_KEY"].replace("\\n", "\n")
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": os.environ["APPSTORE_ISSUER_ID"], "iat": now, "exp": now + 600, "aud": "appstoreconnect-v1"},
+              key, algorithm="ES256",
+              headers={"kid": os.environ["APPSTORE_KEY_ID"], "typ": "JWT"},
+          )
+          url = "https://api.appstoreconnect.apple.com/v1/builds?filter[app]=6816363309&limit=3&sort=-uploadedDate"
+          req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+          with urllib.request.urlopen(req) as resp:
+              payload = json.load(resp)
+          for item in payload.get("data", []):
+              a = item["attributes"]
+              print(f"version={a.get('version')} state={a.get('processingState')} uploaded={a.get('uploadedDate')}")
+          if not payload.get("data"):
+              print("no builds yet")
+          PY
