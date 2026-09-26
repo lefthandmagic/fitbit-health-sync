@@ -1,0 +1,71 @@
+name: Register bundle ID
+
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_id:
+        description: "Bundle identifier"
+        required: true
+        type: string
+      name:
+        description: "Bundle ID name in App Store Connect"
+        required: true
+        type: string
+
+jobs:
+  register:
+    runs-on: macos-15
+    steps:
+      - name: Create iOS bundle ID
+        env:
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
+          BUNDLE_NAME: ${{ inputs.name }}
+        run: |
+          python3 -m pip install --quiet pyjwt cryptography
+          python3 - << 'PY'
+          import os, time, json, urllib.request, urllib.error
+          import jwt
+
+          key = os.environ["APPSTORE_PRIVATE_KEY"].replace("\\n", "\n")
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": os.environ["APPSTORE_ISSUER_ID"], "iat": now, "exp": now + 600, "aud": "appstoreconnect-v1"},
+              key,
+              algorithm="ES256",
+              headers={"kid": os.environ["APPSTORE_KEY_ID"], "typ": "JWT"},
+          )
+          body = json.dumps({
+              "data": {
+                  "type": "bundleIds",
+                  "attributes": {
+                      "identifier": os.environ["BUNDLE_ID"],
+                      "name": os.environ["BUNDLE_NAME"],
+                      "platform": "IOS",
+                  },
+              }
+          }).encode()
+          req = urllib.request.Request(
+              "https://api.appstoreconnect.apple.com/v1/bundleIds",
+              data=body,
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Content-Type": "application/json",
+              },
+              method="POST",
+          )
+          try:
+              with urllib.request.urlopen(req) as resp:
+                  payload = json.load(resp)
+              attrs = payload["data"]["attributes"]
+              print(f"created {attrs['identifier']} ({attrs['name']})")
+          except urllib.error.HTTPError as e:
+              detail = e.read().decode()
+              if e.code == 409 or "ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE" in detail:
+                  print(f"already exists {os.environ['BUNDLE_ID']}")
+              else:
+                  print(detail)
+                  raise
+          PY
