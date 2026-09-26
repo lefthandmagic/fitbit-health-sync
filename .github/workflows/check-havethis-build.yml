@@ -2,6 +2,12 @@ name: Check HaveThis build
 
 on:
   workflow_dispatch:
+    inputs:
+      app_id:
+        description: "App Store Connect app id"
+        required: true
+        default: "6816363309"
+        type: string
 
 jobs:
   check:
@@ -12,6 +18,7 @@ jobs:
           APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
           APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
           APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          APP_ID: ${{ inputs.app_id }}
         run: |
           python3 -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
@@ -25,7 +32,7 @@ jobs:
               key, algorithm="ES256",
               headers={"kid": os.environ["APPSTORE_KEY_ID"], "typ": "JWT"},
           )
-          url = "https://api.appstoreconnect.apple.com/v1/builds?filter[app]=6816363309&limit=3&sort=-uploadedDate"
+          url = "https://api.appstoreconnect.apple.com/v1/builds?filter[app]=" + os.environ["APP_ID"] + "&limit=3&sort=-uploadedDate"
           req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
           with urllib.request.urlopen(req) as resp:
               payload = json.load(resp)
